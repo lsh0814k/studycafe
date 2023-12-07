@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import static jakarta.persistence.FetchType.*;
 import static lombok.AccessLevel.*;
 
-@Entity @Getter @EqualsAndHashCode(of ="id")
+@Entity @Getter @EqualsAndHashCode(of ="id") @Setter
 @Builder @AllArgsConstructor @NoArgsConstructor(access = PROTECTED)
 public class Account {
 
