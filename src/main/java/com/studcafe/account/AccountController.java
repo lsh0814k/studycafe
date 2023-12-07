@@ -15,6 +15,7 @@ public class AccountController {
         //  thymeleaf:
         //    prefix: classpath:/templates/
         //    suffix: .html
+        model.addAttribute(new SignUpForm());
         return "account/sign-up";
     }
 }
