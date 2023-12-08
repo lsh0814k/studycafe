@@ -1,5 +1,7 @@
-package com.studcafe.account;
+package com.studcafe.account.web.validator;
 
+import com.studcafe.account.repository.AccountRepository;
+import com.studcafe.account.web.SignUpForm;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -19,7 +21,6 @@ public class SignUpFormValidator implements Validator {
 
     @Override
     public void validate(Object target, Errors errors) {
-        // TODO email, nickname
         SignUpForm signUpForm = (SignUpForm) target;
         if (accountRepository.existsByEmail(signUpForm.getEmail())) {
             errors.rejectValue("email", "invalid.email", new Object[]{signUpForm.getEmail()}, "이미 사용중인 이메일입니다.");

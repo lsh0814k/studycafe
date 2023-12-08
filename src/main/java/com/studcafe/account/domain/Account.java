@@ -1,4 +1,4 @@
-package com.studcafe.domain;
+package com.studcafe.account.domain;
 
 import jakarta.persistence.*;
 import lombok.*;

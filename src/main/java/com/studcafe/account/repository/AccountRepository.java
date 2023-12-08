@@ -1,10 +1,9 @@
-package com.studcafe.account;
+package com.studcafe.account.repository;
 
-import com.studcafe.domain.Account;
+import com.studcafe.account.domain.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
-@Transactional(readOnly = true)
 public interface AccountRepository extends JpaRepository<Account, Long> {
 
     boolean existsByEmail(String email);

@@ -1,6 +1,6 @@
 package com.studcafe.account;
 
-import org.junit.jupiter.api.Assertions;
+import com.studcafe.account.repository.AccountRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -89,6 +89,7 @@ class AccountControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/"));
 
+        System.out.println(accountRepository.findAll().size());
         assertTrue(accountRepository.existsByEmail("email@naver.com"));
         assertTrue(accountRepository.existsByNickname("nick"));
     }

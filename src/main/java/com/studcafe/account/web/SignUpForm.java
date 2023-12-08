@@ -1,5 +1,6 @@
-package com.studcafe.account;
+package com.studcafe.account.web;
 
+import com.studcafe.account.domain.Account;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -19,4 +20,13 @@ public class SignUpForm {
     @NotBlank
     @Length(min = 8, max = 50)
     private String password;
+
+
+    public Account createAccount() {
+        return Account.builder()
+                .email(email)
+                .nickname(nickname)
+                .password(password) // TODO encoding
+                .build();
+    }
 }

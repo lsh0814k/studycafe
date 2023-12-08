@@ -1,10 +1,9 @@
-package com.studcafe.account;
+package com.studcafe.account.web;
 
-import com.studcafe.domain.Account;
+import com.studcafe.account.service.AccountService;
+import com.studcafe.account.web.validator.SignUpFormValidator;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -18,8 +17,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 public class AccountController {
 
     private final SignUpFormValidator signUpFormValidator;
-    private final AccountRepository accountRepository;
-    private final JavaMailSender javaMailSender;
+    private final AccountService accountService;
+
 
     @InitBinder("signUpForm")
     public void initBinder(WebDataBinder webDataBinder) {
@@ -44,21 +43,8 @@ public class AccountController {
             return "account/sign-up";
         }
 
-        Account account = Account.builder()
-                .email(signUpForm.getEmail())
-                .nickname(signUpForm.getNickname())
-                .password(signUpForm.getPassword()) // TODO encoding
-                .build();
-        account.generateEmailCheckToken();
-        accountRepository.save(account);
-
-        SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-        simpleMailMessage.setSubject("스토디카페, 회원 가입 인증");
-        simpleMailMessage.setText(String.format("/check-email-token?token=%s&email=%s", account.getEmailCheckToken(), account.getEmail()));
-        simpleMailMessage.setTo(account.getEmail());
-        javaMailSender.send(simpleMailMessage);
+        accountService.processNewAccount(signUpForm.createAccount());
 
         return "redirect:/";
     }
-
 }
