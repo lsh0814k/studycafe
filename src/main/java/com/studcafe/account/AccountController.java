@@ -46,7 +46,7 @@ public class AccountController {
 
         Account account = Account.builder()
                 .email(signUpForm.getEmail())
-                .nickname(signUpForm.getEmail())
+                .nickname(signUpForm.getNickname())
                 .password(signUpForm.getPassword()) // TODO encoding
                 .build();
         account.generateEmailCheckToken();
