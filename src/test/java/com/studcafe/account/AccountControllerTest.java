@@ -127,9 +127,42 @@ class AccountControllerTest {
     }
 
     @Test
-    @DisplayName("이메일 인증 - 오류")
-    void checkEmailToken_with_unMatch_token() {
-
+    @DisplayName("인증 메일 확인 - 입력 값 오류")
+    void checkEmailToken_with_wrong_input() throws Exception {
+        mockMvc.perform(get("/check-email-token")
+                        .with(csrf())
+                        .param("token", "wrong")
+                        .param("email", "mail@mail.com")
+        )
+        .andExpect(status().isOk())
+        .andExpect(model().attributeExists("error"))
+        .andExpect(view().name("account/checked-email"));
     }
 
+    @Test
+    @DisplayName("인증 메일 확인 - 입력 값 정상")
+    void checkEmailToken_with_correct_input() throws Exception {
+        Account account = Account.builder()
+                .email("test@email.com")
+                .password("12345678")
+                .nickname("nick")
+                .build();
+        account.generateEmailCheckToken();
+        accountRepository.save(account);
+
+        mockMvc.perform(get("/check-email-token")
+                        .with(csrf())
+                        .param("token", account.getEmailCheckToken())
+                        .param("email", account.getEmail())
+                )
+                .andExpect(status().isOk())
+                .andExpect(model().attributeDoesNotExist("error"))
+                .andExpect(model().attributeExists("numberOfUser"))
+                .andExpect(model().attributeExists("nickname"))
+                .andExpect(view().name("account/checked-email"));
+
+        Account findAccount = accountRepository.findByEmail(account.getEmail()).get();
+        assertTrue(findAccount.isEmailVerified());
+        assertNotNull(findAccount.getJoinedAt());
+    }
 }
