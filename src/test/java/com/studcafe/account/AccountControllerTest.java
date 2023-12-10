@@ -125,4 +125,11 @@ class AccountControllerTest {
         Account account = accountRepository.findByEmail("email@naver.com").get();
         assertNotEquals("a151385wa3!", account.getPassword());
     }
+
+    @Test
+    @DisplayName("이메일 인증 - 오류")
+    void checkEmailToken_with_unMatch_token() {
+
+    }
+
 }

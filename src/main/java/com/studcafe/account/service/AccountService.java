@@ -1,6 +1,7 @@
 package com.studcafe.account.service;
 
 import com.studcafe.account.domain.Account;
+import com.studcafe.account.exception.UnMatchedTokenException;
 import com.studcafe.account.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
@@ -32,5 +33,15 @@ public class AccountService {
         simpleMailMessage.setText(String.format("/check-email-token?token=%s&email=%s", account.getEmailCheckToken(), account.getEmail()));
         simpleMailMessage.setTo(account.getEmail());
         javaMailSender.send(simpleMailMessage);
+    }
+
+    @Transactional
+    public void verifyEmail(String email, String token) {
+        Account account = accountRepository.findByEmail(email).orElseThrow(UnMatchedTokenException::new);
+        if (!account.getEmailCheckToken().equals(token)) {
+            throw new UnMatchedTokenException();
+        }
+
+        account.updateVerifiedAccount();
     }
 }
