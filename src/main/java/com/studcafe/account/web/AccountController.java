@@ -1,9 +1,11 @@
 package com.studcafe.account.web;
 
+import com.studcafe.account.exception.UnMatchedTokenException;
 import com.studcafe.account.service.AccountService;
 import com.studcafe.account.web.validator.SignUpFormValidator;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -18,6 +20,7 @@ public class AccountController {
 
     private final SignUpFormValidator signUpFormValidator;
     private final AccountService accountService;
+    private final PasswordEncoder passwordEncoder;
 
 
     @InitBinder("signUpForm")
@@ -43,8 +46,7 @@ public class AccountController {
             return "account/sign-up";
         }
 
-        accountService.processNewAccount(signUpForm.createAccount());
-
+        accountService.processNewAccount(signUpForm.createAccount(passwordEncoder));
         return "redirect:/";
     }
 }

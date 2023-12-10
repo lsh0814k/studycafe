@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Getter @Setter
 public class SignUpForm {
@@ -22,11 +23,11 @@ public class SignUpForm {
     private String password;
 
 
-    public Account createAccount() {
+    public Account createAccount(PasswordEncoder passwordEncoder) {
         return Account.builder()
                 .email(email)
                 .nickname(nickname)
-                .password(password) // TODO encoding
+                .password(passwordEncoder.encode(password)) // TODO encoding
                 .build();
     }
 }

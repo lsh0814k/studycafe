@@ -1,5 +1,6 @@
 package com.studcafe.account;
 
+import com.studcafe.account.domain.Account;
 import com.studcafe.account.repository.AccountRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -107,5 +108,21 @@ class AccountControllerTest {
                 .andExpect(view().name("redirect:/"));
 
         then(javaMailSender).should().send(any(SimpleMailMessage.class));
+    }
+
+    @Test
+    @DisplayName("회원 가입 처리 - 비밀번호 인코드")
+    void signUp_with_correct_input_passwrod_encode() throws Exception{
+        mockMvc.perform(post("/sign-up")
+                        .with(csrf())
+                        .param("nickname", "nick")
+                        .param("email", "email@naver.com")
+                        .param("password", "a151385wa3!")
+                )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/"));
+
+        Account account = accountRepository.findByEmail("email@naver.com").get();
+        assertNotEquals("a151385wa3!", account.getPassword());
     }
 }
