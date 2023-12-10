@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.then;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -51,7 +52,8 @@ class AccountControllerTest {
         mockMvc.perform(get("/sign-up"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("account/sign-up"))
-                .andExpect(model().attributeExists("signUpForm"));
+                .andExpect(model().attributeExists("signUpForm"))
+                .andExpect(unauthenticated());
     }
 
     @Test
@@ -62,7 +64,8 @@ class AccountControllerTest {
                 .param("email", "email..")
                 .param("password", "12345")
         )
-        .andExpect(status().isForbidden());
+        .andExpect(status().isForbidden())
+        .andExpect(unauthenticated());
     }
 
     @Test
@@ -75,7 +78,8 @@ class AccountControllerTest {
                         .param("password", "12345")
                 )
                 .andExpect(status().isOk())
-                .andExpect(view().name("account/sign-up"));
+                .andExpect(view().name("account/sign-up"))
+                .andExpect(unauthenticated());
     }
 
     @Test
@@ -88,9 +92,9 @@ class AccountControllerTest {
                         .param("password", "a151385wa3!")
                 )
                 .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/"));
+                .andExpect(view().name("redirect:/"))
+                .andExpect(unauthenticated());
 
-        System.out.println(accountRepository.findAll().size());
         assertTrue(accountRepository.existsByEmail("email@naver.com"));
         assertTrue(accountRepository.existsByNickname("nick"));
     }
@@ -105,7 +109,8 @@ class AccountControllerTest {
                         .param("password", "a151385wa3!")
                 )
                 .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/"));
+                .andExpect(view().name("redirect:/"))
+                .andExpect(unauthenticated());
 
         then(javaMailSender).should().send(any(SimpleMailMessage.class));
     }
@@ -120,7 +125,8 @@ class AccountControllerTest {
                         .param("password", "a151385wa3!")
                 )
                 .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/"));
+                .andExpect(view().name("redirect:/"))
+                .andExpect(unauthenticated());
 
         Account account = accountRepository.findByEmail("email@naver.com").get();
         assertNotEquals("a151385wa3!", account.getPassword());
@@ -133,10 +139,11 @@ class AccountControllerTest {
                         .with(csrf())
                         .param("token", "wrong")
                         .param("email", "mail@mail.com")
-        )
-        .andExpect(status().isOk())
-        .andExpect(model().attributeExists("error"))
-        .andExpect(view().name("account/checked-email"));
+                )
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("error"))
+                .andExpect(view().name("account/checked-email"))
+                .andExpect(unauthenticated());
     }
 
     @Test
@@ -159,7 +166,8 @@ class AccountControllerTest {
                 .andExpect(model().attributeDoesNotExist("error"))
                 .andExpect(model().attributeExists("numberOfUser"))
                 .andExpect(model().attributeExists("nickname"))
-                .andExpect(view().name("account/checked-email"));
+                .andExpect(view().name("account/checked-email"))
+                .andExpect(unauthenticated());
 
         Account findAccount = accountRepository.findByEmail(account.getEmail()).get();
         assertTrue(findAccount.isEmailVerified());
