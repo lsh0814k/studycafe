@@ -60,7 +60,7 @@ public class Account {
         this.emailCheckToken = UUID.randomUUID().toString();
     }
 
-    public void updateVerifiedAccount() {
+    public void completeSignUp() {
         this.emailVerified = true;
         this.joinedAt = LocalDateTime.now();
     }

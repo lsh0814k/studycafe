@@ -42,6 +42,6 @@ public class AccountService {
             throw new UnMatchedTokenException();
         }
 
-        account.updateVerifiedAccount();
+        account.completeSignUp();
     }
 }
