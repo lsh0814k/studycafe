@@ -38,7 +38,7 @@ public class AccountService {
     @Transactional
     public void verifyEmail(String email, String token) {
         Account account = accountRepository.findByEmail(email).orElseThrow(UnMatchedTokenException::new);
-        if (!account.getEmailCheckToken().equals(token)) {
+        if (!account.isValidToken(token)) {
             throw new UnMatchedTokenException();
         }
 
