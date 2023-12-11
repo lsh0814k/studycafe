@@ -50,7 +50,9 @@ public class AccountController {
             return "account/sign-up";
         }
 
-        accountService.processNewAccount(signUpForm.createAccount(passwordEncoder));
+        Account account = signUpForm.createAccount(passwordEncoder);
+        accountService.processNewAccount(account);
+        accountService.login(account);
         return "redirect:/";
     }
 
@@ -58,9 +60,10 @@ public class AccountController {
     public String checkEmailToken(@RequestParam("token") String token, @RequestParam("email") String email, Model model) {
         try {
             accountService.verifyEmail(email, token);
-            Account account = accountRepository.findByEmail(email).get();
+            Account account = accountRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
             model.addAttribute("numberOfUser", accountRepository.count());
             model.addAttribute("nickname", account.getNickname());
+            accountService.login(account);
         } catch (UnMatchedTokenException e) {
             model.addAttribute("error", "wrong approach");
         }
