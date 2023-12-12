@@ -1,4 +1,4 @@
-package com.studcafe.account.service;
+package com.studcafe.account.dto;
 
 import com.studcafe.account.domain.Account;
 import lombok.Getter;
