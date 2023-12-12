@@ -1,7 +1,7 @@
 package com.studcafe.account.service;
 
 import com.studcafe.account.domain.Account;
-import com.studcafe.account.dto.UserAccount;
+import com.studcafe.security.UserAccount;
 import com.studcafe.account.exception.UnMatchedTokenException;
 import com.studcafe.account.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
