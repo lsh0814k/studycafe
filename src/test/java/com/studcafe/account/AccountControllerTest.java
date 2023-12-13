@@ -92,7 +92,7 @@ class AccountControllerTest {
                         .param("password", "a151385wa3!")
                 )
                 .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/"))
+                .andExpect(view().name("redirect:/login"))
                 .andExpect(unauthenticated());
 
         assertTrue(accountRepository.existsByEmail("email@naver.com"));
@@ -109,7 +109,7 @@ class AccountControllerTest {
                         .param("password", "a151385wa3!")
                 )
                 .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/"))
+                .andExpect(view().name("redirect:/login"))
                 .andExpect(unauthenticated());
 
         then(javaMailSender).should().send(any(SimpleMailMessage.class));
@@ -125,7 +125,7 @@ class AccountControllerTest {
                         .param("password", "a151385wa3!")
                 )
                 .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/"))
+                .andExpect(view().name("redirect:/login"))
                 .andExpect(unauthenticated());
 
         Account account = accountRepository.findByEmail("email@naver.com").get();
