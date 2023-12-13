@@ -1,10 +1,10 @@
 package com.studcafe.main;
 
 import com.studcafe.account.domain.Account;
+import com.studcafe.main.annotation.CurrentUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import com.studcafe.main.annotation.*;
 
 @Controller
 public class MainController {
@@ -16,5 +16,10 @@ public class MainController {
         }
 
         return "index";
+    }
+
+    @GetMapping("/login")
+    public String loginForm() {
+        return "login";
     }
 }

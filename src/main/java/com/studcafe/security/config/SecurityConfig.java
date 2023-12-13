@@ -31,7 +31,9 @@ public class SecurityConfig {
                         mvcMatcherBuilder.pattern(HttpMethod.GET, "/profile/*")
                 ).permitAll() // 해당 요청들은 모두 허용한다.
                 .anyRequest().authenticated() // 그 외 요청들은 모두 인증해야 한다.
-        );
+        )
+        .formLogin(httpSecurityFormLoginConfigurer -> httpSecurityFormLoginConfigurer.loginPage("/login").permitAll())
+        .logout(httpSecurityLogoutConfigurer -> httpSecurityLogoutConfigurer.logoutSuccessUrl("/"));
 
         return http.build();
     }
