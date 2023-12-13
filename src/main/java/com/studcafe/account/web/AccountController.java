@@ -52,8 +52,7 @@ public class AccountController {
 
         Account account = signUpForm.createAccount(passwordEncoder);
         accountService.processNewAccount(account);
-        accountService.login(account);
-        return "redirect:/";
+        return "redirect:/login";
     }
 
     @GetMapping("/check-email-token")
@@ -63,7 +62,6 @@ public class AccountController {
             Account account = accountRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
             model.addAttribute("numberOfUser", accountRepository.count());
             model.addAttribute("nickname", account.getNickname());
-            accountService.login(account);
         } catch (UnMatchedTokenException e) {
             model.addAttribute("error", "wrong approach");
         }
