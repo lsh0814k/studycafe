@@ -45,4 +45,9 @@ public class AccountService {
 
         account.completeSignUp();
     }
+
+    public void sendConfirmEmail(Account account) {
+        account.generateEmailCheckToken();
+        sendSignUpConfirmEmail(account);
+    }
 }
