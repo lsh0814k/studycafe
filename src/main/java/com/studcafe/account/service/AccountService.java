@@ -56,4 +56,10 @@ public class AccountService {
         Account findAccount = accountRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
         findAccount.updateProfile(updatedAccount);
     }
+
+    @Transactional
+    public void updatePassword(String email, Account account) {
+        Account findAccount = accountRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
+        findAccount.updatePassword(account);
+    }
 }

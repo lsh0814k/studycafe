@@ -83,4 +83,8 @@ public class Account {
         this.location = updatedAccount.getLocation();
         this.profileImage = updatedAccount.getProfileImage();
     }
+
+    public void updatePassword(Account account) {
+        this.password = account.getPassword();
+    }
 }
