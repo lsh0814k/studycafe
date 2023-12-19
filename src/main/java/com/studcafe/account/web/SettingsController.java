@@ -40,9 +40,13 @@ public class SettingsController {
             return SETTINGS_PROFILE_VIEW_NAME;
         }
 
-        accountService.updateProfile(account.getEmail(), profile.createAccount());
+        Account modifiedAccount = profile.createAccount();
+        accountService.updateProfile(account.getEmail(), modifiedAccount);
+        // TODO principal Account 동기화 시켜줘야 한다. 어떻게 처리를해야 좋을까,,,
+        account.updateProfile(modifiedAccount);
+
+        // 1회용 attribute
         redirectAttributes.addFlashAttribute("message", "프로필을 수정했습니다.");
         return "redirect:" + SETTINGS_PROFILE_URL;
-
     }
 }

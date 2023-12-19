@@ -81,5 +81,6 @@ public class Account {
         this.url = updatedAccount.getUrl();
         this.occupation = updatedAccount.getOccupation();
         this.location = updatedAccount.getLocation();
+        this.profileImage = updatedAccount.getProfileImage();
     }
 }
