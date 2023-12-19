@@ -2,7 +2,7 @@ package com.studcafe.main;
 
 import com.studcafe.account.repository.AccountRepository;
 import com.studcafe.account.service.AccountService;
-import com.studcafe.account.web.SignUpForm;
+import com.studcafe.account.web.dto.SignUpForm;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

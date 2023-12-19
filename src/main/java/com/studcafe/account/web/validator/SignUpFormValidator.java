@@ -1,7 +1,7 @@
 package com.studcafe.account.web.validator;
 
 import com.studcafe.account.repository.AccountRepository;
-import com.studcafe.account.web.SignUpForm;
+import com.studcafe.account.web.dto.SignUpForm;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;

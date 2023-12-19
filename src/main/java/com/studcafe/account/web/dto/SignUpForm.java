@@ -1,4 +1,4 @@
-package com.studcafe.account.web;
+package com.studcafe.account.web.dto;
 
 import com.studcafe.account.domain.Account;
 import jakarta.validation.constraints.Email;
