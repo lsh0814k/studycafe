@@ -4,6 +4,7 @@ import com.studcafe.account.domain.Account;
 import com.studcafe.account.exception.UnMatchedTokenException;
 import com.studcafe.account.repository.AccountRepository;
 import com.studcafe.account.service.AccountService;
+import com.studcafe.account.web.dto.SignUpForm;
 import com.studcafe.account.web.validator.SignUpFormValidator;
 import com.studcafe.main.annotation.CurrentUser;
 import jakarta.validation.Valid;

@@ -75,4 +75,11 @@ public class Account {
     public boolean canSendConfirmEmail() {
         return !emailVerified && emailCheckTokenGeneratedAt.isBefore(LocalDateTime.now().minusHours(1));
     }
+
+    public void updateProfile(Account updatedAccount) {
+        this.bio = updatedAccount.getBio();
+        this.url = updatedAccount.getUrl();
+        this.occupation = updatedAccount.getOccupation();
+        this.location = updatedAccount.getLocation();
+    }
 }

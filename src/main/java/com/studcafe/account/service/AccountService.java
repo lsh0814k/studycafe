@@ -50,4 +50,10 @@ public class AccountService {
         account.generateEmailCheckToken();
         sendSignUpConfirmEmail(account);
     }
+
+    @Transactional
+    public void updateProfile(String email, Account updatedAccount) {
+        Account findAccount = accountRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
+        findAccount.updateProfile(updatedAccount);
+    }
 }
