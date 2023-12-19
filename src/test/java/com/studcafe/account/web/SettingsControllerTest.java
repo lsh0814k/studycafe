@@ -125,4 +125,35 @@ class SettingsControllerTest {
                 .andExpect(model().attributeExists("account"))
                 .andExpect(model().attributeExists("passwordForm"));
     }
+
+    @WithAccount("nick")
+    @DisplayName("알림 수정 폼")
+    @Test
+    void notifications_form() throws Exception {
+        mockMvc.perform(get(SettingsController.SETTINGS_NOTIFICATIONS_URL))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("account"))
+                .andExpect(model().attributeExists("notifications"));
+    }
+
+    @WithAccount("nick")
+    @DisplayName("알림 수정")
+    @Test
+    void notifications() throws Exception {
+        mockMvc.perform(post(SettingsController.SETTINGS_NOTIFICATIONS_URL)
+                        .with(csrf())
+                        .param("studyCreatedByEmail", "true")
+                        .param("studyCreatedByWeb", "true")
+                        .param("studyEnrollmentResultByEmail", "true")
+                        .param("studyEnrollmentResultByWeb", "true")
+                        .param("studyUpdatedByEmail", "true")
+                        .param("studyUpdatedByWeb", "true")
+                )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(SettingsController.SETTINGS_NOTIFICATIONS_URL))
+                .andExpect(flash().attributeExists("message"));
+
+        Account account = accountRepository.findByNickname("nick").get();
+        assertTrue(account.isStudyCreatedByEmail());
+    }
 }

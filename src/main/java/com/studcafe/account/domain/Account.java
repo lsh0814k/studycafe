@@ -87,4 +87,13 @@ public class Account {
     public void updatePassword(Account account) {
         this.password = account.getPassword();
     }
+
+    public void updateNotifications(Account account) {
+        this.studyCreatedByEmail = account.isStudyCreatedByEmail();
+        this.studyCreatedByWeb = account.isStudyCreatedByWeb();
+        this.studyEnrollmentResultByEmail = account.isStudyEnrollmentResultByEmail();
+        this.studyEnrollmentResultByWeb = account.isStudyEnrollmentResultByWeb();
+        this.studyUpdatedByEmail = account.isStudyUpdatedByEmail();
+        this.studyUpdatedByWeb = account.isStudyUpdatedByWeb();
+    }
 }
