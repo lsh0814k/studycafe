@@ -1,6 +1,14 @@
+
 spring:
   profiles:
     active: local
-logging:
-  level:
-    org.hibernate.SQL: debug
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true # 로그, 콘솔의 SQL을 좀 더 이쁘게 출력합니다.
+        ddl-auto: create-drop
+
+logging.level:
+  org.hibernate.SQL: debug # logger를 통해 하이버네이트 실행 SQL
+  org.hibernate.type: trace # 콘솔차에 조건에 바인딩되는 값 및 조회 결과 출력
+  org.hibernate.type.descriptor.sql: trace # sql의 ? 값을 Parameter로 보여줌.
