@@ -1,24 +1,29 @@
 package com.studcafe.account.web;
 
 import com.studcafe.account.domain.Account;
+import com.studcafe.account.domain.Tag;
 import com.studcafe.account.service.AccountService;
 import com.studcafe.account.web.dto.Notifications;
 import com.studcafe.account.web.dto.PasswordForm;
 import com.studcafe.account.web.dto.Profile;
+import com.studcafe.account.web.dto.TagForm;
 import com.studcafe.account.web.validator.PasswordValidator;
 import com.studcafe.main.annotation.CurrentUser;
+import com.studcafe.tag.repository.TagRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -33,6 +38,9 @@ public class SettingsController {
     static final String SETTINGS_NOTIFICATIONS_VIEW_NAME = "/settings/notifications";
     static final String SETTINGS_NOTIFICATIONS_URL = "/settings/notifications";
 
+    static final String SETTINGS_TAGS_VIEW_NAME = "/settings/tags";
+    static final String SETTINGS_TAGS_URL = "/settings/tags";
+
     private final AccountService accountService;
     private final PasswordEncoder passwordEncoder;
 
@@ -40,6 +48,22 @@ public class SettingsController {
     public void initBinder(WebDataBinder webDataBinder) {
         webDataBinder.addValidators(new PasswordValidator());
     }
+
+    @GetMapping(SETTINGS_TAGS_URL)
+    public String updateTagsForm(@CurrentUser Account account, Model model) {
+        Set<Tag> tags = accountService.getTags(account.getEmail());
+        model.addAttribute(account);
+        model.addAttribute("tags", tags.stream().map(Tag::getTitle).collect(Collectors.toList()));
+        return SETTINGS_TAGS_VIEW_NAME;
+    }
+
+    @PostMapping("/settings/tags/add")
+    @ResponseBody
+    public ResponseEntity addTag(@CurrentUser Account account, @RequestBody TagForm tagForm) {
+        accountService.addTag(account.getEmail(), tagForm.getTagTitle());
+        return ResponseEntity.ok().build();
+    }
+
 
     @GetMapping(SETTINGS_NOTIFICATIONS_URL)
     public String updateNotificationsForm(@CurrentUser Account account, Model model) {

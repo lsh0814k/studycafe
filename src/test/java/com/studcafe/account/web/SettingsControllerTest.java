@@ -1,14 +1,18 @@
 package com.studcafe.account.web;
 
 import com.studcafe.account.domain.Account;
+import com.studcafe.account.domain.Tag;
 import com.studcafe.account.repository.AccountRepository;
 import com.studcafe.security.annotation.WithAccount;
+import com.studcafe.tag.repository.TagRepository;
+import lombok.With;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -30,6 +34,9 @@ class SettingsControllerTest {
 
     @Autowired
     PasswordEncoder passwordEncoder;
+
+    @Autowired
+    TagRepository tagRepository;
 
     @AfterEach
     void afterEach() {
@@ -155,5 +162,36 @@ class SettingsControllerTest {
 
         Account account = accountRepository.findByNickname("nick").get();
         assertTrue(account.isStudyCreatedByEmail());
+    }
+
+    @WithAccount("nick")
+    @DisplayName("관심 주제 등록")
+    @Test
+    void tags_save() throws Exception{
+        String requestJson = "{\"tagTitle\": \"Spring\"}";
+        mockMvc.perform(post("/settings/tags/add")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        )
+                .andExpect(status().isOk());
+
+
+        Tag tag = tagRepository.findByTitle("Spring").get();
+        assertEquals("Spring", tag.getTitle());
+
+        Account account = accountRepository.findByNickname("nick").get();
+    }
+
+    @WithAccount("nick")
+    @DisplayName("관심 주제 조회")
+    @Test
+    void tags_search() throws Exception{
+        mockMvc.perform(get(SettingsController.SETTINGS_TAGS_URL))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("account"))
+                .andExpect(model().attributeExists("tags"))
+                .andExpect(view().name(SettingsController.SETTINGS_TAGS_VIEW_NAME));
+
     }
 }

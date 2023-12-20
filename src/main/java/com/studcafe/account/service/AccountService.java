@@ -1,13 +1,17 @@
 package com.studcafe.account.service;
 
 import com.studcafe.account.domain.Account;
+import com.studcafe.account.domain.Tag;
 import com.studcafe.account.exception.UnMatchedTokenException;
 import com.studcafe.account.repository.AccountRepository;
+import com.studcafe.tag.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Set;
 
 @Service
 @Transactional(readOnly = true)
@@ -15,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AccountService {
     private final AccountRepository accountRepository;
     private final JavaMailSender javaMailSender;
-
+    private final TagRepository tagRepository;
 
     @Transactional
     public void processNewAccount(Account account) {
@@ -70,4 +74,16 @@ public class AccountService {
         findAccount.updateNotifications(account);
     }
 
+    @Transactional
+    public void addTag(String email, String title) {
+        Account findAccount = accountRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
+        Tag tag = tagRepository.findByTitle(title).orElseGet(() -> tagRepository.save(Tag.builder().title(title).build()));
+
+        findAccount.addTags(tag);
+    }
+
+    public Set<Tag> getTags(String email) {
+        Account findAccount = accountRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
+        return findAccount.getTags();
+    }
 }
