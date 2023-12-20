@@ -1,22 +1,29 @@
 package com.studcafe.account.web;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.studcafe.account.domain.Account;
 import com.studcafe.account.domain.Tag;
 import com.studcafe.account.repository.AccountRepository;
+import com.studcafe.account.service.AccountService;
+import com.studcafe.account.web.dto.TagForm;
 import com.studcafe.security.annotation.WithAccount;
 import com.studcafe.tag.repository.TagRepository;
-import lombok.With;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -37,6 +44,12 @@ class SettingsControllerTest {
 
     @Autowired
     TagRepository tagRepository;
+
+    @Autowired
+    AccountService accountService;
+
+    @Autowired
+    ObjectMapper objectMapper;
 
     @AfterEach
     void afterEach() {
@@ -168,11 +181,12 @@ class SettingsControllerTest {
     @DisplayName("관심 주제 등록")
     @Test
     void tags_save() throws Exception{
-        String requestJson = "{\"tagTitle\": \"Spring\"}";
+        TagForm tagForm = new TagForm();
+        tagForm.setTagTitle("Spring");
         mockMvc.perform(post("/settings/tags/add")
                 .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson)
+                .contentType(APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(tagForm))
         )
                 .andExpect(status().isOk());
 
@@ -180,18 +194,56 @@ class SettingsControllerTest {
         Tag tag = tagRepository.findByTitle("Spring").get();
         assertEquals("Spring", tag.getTitle());
 
-        Account account = accountRepository.findByNickname("nick").get();
+        Account account = accountRepository.findWithTagsByNickname("nick").get();
+        assertTrue(account.getTags().stream().map(Tag::getTitle).toList().contains("Spring"));
     }
 
     @WithAccount("nick")
     @DisplayName("관심 주제 조회")
     @Test
     void tags_search() throws Exception{
+        accountService.addTag("nick@email.com", "Spring");
+
         mockMvc.perform(get(SettingsController.SETTINGS_TAGS_URL))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("account"))
                 .andExpect(model().attributeExists("tags"))
                 .andExpect(view().name(SettingsController.SETTINGS_TAGS_VIEW_NAME));
 
+    }
+
+    @WithAccount("nick")
+    @DisplayName("관심 주제 삭제")
+    @Test
+    void tags_remove() throws Exception {
+        accountService.addTag("nick@email.com", "Spring");
+        accountService.addTag("nick@email.com", "Jpa");
+        accountService.addTag("nick@email.com", "Java");
+
+        TagForm tagForm = new TagForm();
+        tagForm.setTagTitle("Spring");
+        mockMvc.perform(post("/settings/tags/remove")
+                .with(csrf())
+                .contentType(APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(tagForm))
+        )
+                .andExpect(status().isOk());
+
+        Optional<Tag> tagOptional = tagRepository.findByTitle("Spring");
+        assertTrue(tagOptional.isPresent());
+
+        Account account = accountRepository.findWithTagsByNickname("nick").get();
+        assertFalse(account.getTags().stream().map(Tag::getTitle).toList().contains("Spring"));
+    }
+
+    @WithAccount("nick")
+    @DisplayName("관심 주제 폼")
+    @Test
+    void tags_form() throws Exception {
+        mockMvc.perform(get(SettingsController.SETTINGS_TAGS_URL))
+                .andExpect(view().name(SettingsController.SETTINGS_TAGS_VIEW_NAME))
+                .andExpect(model().attributeExists("account"))
+                .andExpect(model().attributeExists("whitelist"))
+                .andExpect(model().attributeExists("tags"));
     }
 }
