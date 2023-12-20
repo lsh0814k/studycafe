@@ -46,6 +46,7 @@ public class AccountService {
         account.completeSignUp();
     }
 
+    @Transactional
     public void sendConfirmEmail(Account account) {
         account.generateEmailCheckToken();
         sendSignUpConfirmEmail(account);
@@ -68,4 +69,5 @@ public class AccountService {
         Account findAccount = accountRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
         findAccount.updateNotifications(account);
     }
+
 }
