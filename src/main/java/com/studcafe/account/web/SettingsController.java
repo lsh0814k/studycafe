@@ -3,7 +3,7 @@ package com.studcafe.account.web;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.studcafe.account.domain.Account;
-import com.studcafe.account.domain.Tag;
+import com.studcafe.tag.domain.Tag;
 import com.studcafe.account.service.AccountService;
 import com.studcafe.account.web.dto.Notifications;
 import com.studcafe.account.web.dto.PasswordForm;

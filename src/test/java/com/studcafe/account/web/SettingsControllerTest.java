@@ -2,7 +2,7 @@ package com.studcafe.account.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.studcafe.account.domain.Account;
-import com.studcafe.account.domain.Tag;
+import com.studcafe.tag.domain.Tag;
 import com.studcafe.account.repository.AccountRepository;
 import com.studcafe.account.service.AccountService;
 import com.studcafe.account.web.dto.TagForm;
@@ -15,12 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
