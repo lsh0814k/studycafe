@@ -1,5 +1,7 @@
 package com.studcafe.account.web;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.studcafe.account.domain.Account;
 import com.studcafe.account.domain.Tag;
 import com.studcafe.account.service.AccountService;
@@ -21,7 +23,6 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,6 +44,8 @@ public class SettingsController {
 
     private final AccountService accountService;
     private final PasswordEncoder passwordEncoder;
+    private final ObjectMapper objectMapper;
+    private final TagRepository tagRepository;
 
     @InitBinder("passwordForm")
     public void initBinder(WebDataBinder webDataBinder) {
@@ -50,19 +53,29 @@ public class SettingsController {
     }
 
     @GetMapping(SETTINGS_TAGS_URL)
-    public String updateTagsForm(@CurrentUser Account account, Model model) {
+    public String updateTagsForm(@CurrentUser Account account, Model model) throws JsonProcessingException {
         Set<Tag> tags = accountService.getTags(account.getEmail());
         model.addAttribute(account);
         model.addAttribute("tags", tags.stream().map(Tag::getTitle).collect(Collectors.toList()));
+        model.addAttribute("whitelist", objectMapper.writeValueAsString(tagRepository.findAll().stream().map(Tag::getTitle).collect(Collectors.toList())));
+
         return SETTINGS_TAGS_VIEW_NAME;
     }
 
-    @PostMapping("/settings/tags/add")
+    @PostMapping(SETTINGS_TAGS_URL + "/add")
     @ResponseBody
     public ResponseEntity addTag(@CurrentUser Account account, @RequestBody TagForm tagForm) {
         accountService.addTag(account.getEmail(), tagForm.getTagTitle());
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping(SETTINGS_TAGS_URL + "/remove")
+    @ResponseBody
+    public ResponseEntity removeTag(@CurrentUser Account account, @RequestBody TagForm tagForm) {
+        accountService.removeTag(account.getEmail(), tagForm.getTagTitle());
+        return ResponseEntity.ok().build();
+    }
+
 
 
     @GetMapping(SETTINGS_NOTIFICATIONS_URL)

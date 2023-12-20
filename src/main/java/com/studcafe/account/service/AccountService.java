@@ -6,6 +6,7 @@ import com.studcafe.account.exception.UnMatchedTokenException;
 import com.studcafe.account.repository.AccountRepository;
 import com.studcafe.tag.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -85,5 +86,12 @@ public class AccountService {
     public Set<Tag> getTags(String email) {
         Account findAccount = accountRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
         return findAccount.getTags();
+    }
+
+    @Transactional
+    public void removeTag(String email, String tagTitle) {
+        Account findAccount = accountRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
+        Tag tag = tagRepository.findByTitle(tagTitle).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
+        findAccount.getTags().remove(tag);
     }
 }
