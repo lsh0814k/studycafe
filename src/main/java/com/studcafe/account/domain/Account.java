@@ -1,6 +1,5 @@
 package com.studcafe.account.domain;
 
-import com.studcafe.tag.domain.Tag;
 import jakarta.persistence.*;
 import lombok.*;
 

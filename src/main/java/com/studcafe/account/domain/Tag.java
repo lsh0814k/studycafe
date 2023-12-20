@@ -1,4 +1,4 @@
-package com.studcafe.tag.domain;
+package com.studcafe.account.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
