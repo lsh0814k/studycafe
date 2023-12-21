@@ -197,7 +197,7 @@ class SettingsControllerTest {
         Tag tag = tagRepository.findByTitle("Spring").get();
         assertEquals("Spring", tag.getTitle());
 
-        Account account = accountRepository.findWithTagsByNickname("nick").get();
+        Account account = accountRepository.findWithTagsByEmail("nick@email.com").get();
         assertTrue(account.getTags().stream().map(Tag::getTitle).toList().contains("Spring"));
     }
 
@@ -235,7 +235,7 @@ class SettingsControllerTest {
         Optional<Tag> tagOptional = tagRepository.findByTitle("Spring");
         assertTrue(tagOptional.isPresent());
 
-        Account account = accountRepository.findWithTagsByNickname("nick").get();
+        Account account = accountRepository.findWithTagsByEmail("nick@email.com").get();
         assertFalse(account.getTags().stream().map(Tag::getTitle).toList().contains("Spring"));
     }
 

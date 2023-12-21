@@ -115,11 +115,14 @@ public class SettingsController {
     @PostMapping(SETTINGS_TAGS_URL + "/remove")
     @ResponseBody
     public ResponseEntity removeTag(@CurrentUser Account account, @RequestBody TagForm tagForm) {
-        accountService.removeTag(account.getEmail(), tagForm.getTagTitle());
+        Optional<Tag> tagOptional = tagRepository.findByTitle(tagForm.getTagTitle());
+        if (tagOptional.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        accountService.removeTag(account.getEmail(), tagOptional.get());
         return ResponseEntity.ok().build();
     }
-
-
 
     @GetMapping(SETTINGS_NOTIFICATIONS_URL)
     public String updateNotificationsForm(@CurrentUser Account account, Model model) {

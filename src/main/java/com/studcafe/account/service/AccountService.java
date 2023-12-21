@@ -77,27 +77,27 @@ public class AccountService {
 
     @Transactional
     public void addTag(String email, String title) {
-        Account findAccount = accountRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
+        Account findAccount = accountRepository.findWithTagsByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
         Tag tag = tagRepository.findByTitle(title).orElseGet(() -> tagRepository.save(Tag.builder().title(title).build()));
 
         findAccount.addTags(tag);
     }
 
     public Set<Tag> getTags(String email) {
-        Account findAccount = accountRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
+        Account findAccount = accountRepository.findWithTagsByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
         return findAccount.getTags();
     }
 
     @Transactional
-    public void removeTag(String email, String tagTitle) {
-        Account findAccount = accountRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
-        Tag tag = tagRepository.findByTitle(tagTitle).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
+    public void removeTag(String email, Tag tag) {
+        Account findAccount = accountRepository.findWithTagsByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
+
         findAccount.getTags().remove(tag);
     }
 
     @Transactional
     public void addZone(String email, Zone zone) {
-        Account findAccount = accountRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
+        Account findAccount = accountRepository.findWithTagsByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
         findAccount.getZones().add(zone);
     }
 

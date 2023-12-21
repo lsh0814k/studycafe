@@ -14,13 +14,12 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     boolean existsByNickname(String nickname);
 
-    @EntityGraph(attributePaths = {"tags"})
     Optional<Account> findByEmail(String email);
 
     Optional<Account> findByNickname(String nickname);
 
     @EntityGraph(attributePaths = {"tags"})
-    Optional<Account> findWithTagsByNickname(String nick);
+    Optional<Account> findWithTagsByEmail(String email);
 
     @EntityGraph(attributePaths = {"zones"})
     Optional<Account> findWithZonesByEmail(String email);
