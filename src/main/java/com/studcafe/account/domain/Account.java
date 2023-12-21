@@ -18,6 +18,7 @@ import static lombok.AccessLevel.*;
 public class Account {
 
     @Id @GeneratedValue
+    @Column(name = "account_id")
     private Long id;
 
     // ---- 로그인 ----
