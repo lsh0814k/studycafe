@@ -3,15 +3,14 @@ package com.studcafe.account.web;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.studcafe.account.domain.Account;
+import com.studcafe.account.web.dto.*;
 import com.studcafe.tag.domain.Tag;
 import com.studcafe.account.service.AccountService;
-import com.studcafe.account.web.dto.Notifications;
-import com.studcafe.account.web.dto.PasswordForm;
-import com.studcafe.account.web.dto.Profile;
-import com.studcafe.account.web.dto.TagForm;
 import com.studcafe.account.web.validator.PasswordValidator;
 import com.studcafe.main.annotation.CurrentUser;
 import com.studcafe.tag.repository.TagRepository;
+import com.studcafe.zone.domain.Zone;
+import com.studcafe.zone.repository.ZoneRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +22,8 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,14 +43,56 @@ public class SettingsController {
     static final String SETTINGS_TAGS_VIEW_NAME = "/settings/tags";
     static final String SETTINGS_TAGS_URL = "/settings/tags";
 
+    static final String SETTINGS_ZONES_VIEW_NAME = "/settings/zones";
+    static final String SETTINGS_ZONES_URL = "/settings/zones";
+
     private final AccountService accountService;
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
     private final TagRepository tagRepository;
+    private final ZoneRepository zoneRepository;
 
     @InitBinder("passwordForm")
     public void initBinder(WebDataBinder webDataBinder) {
         webDataBinder.addValidators(new PasswordValidator());
+    }
+
+
+    @GetMapping(SETTINGS_ZONES_URL)
+    public String zonesForm(@CurrentUser Account account, Model model) throws JsonProcessingException {
+        Set<Zone> zones = accountService.getZones(account.getEmail());
+        model.addAttribute("zones", zones.stream().map(Zone::toString).toList());
+
+        List<String> allZones = zoneRepository.findAll().stream().map(Zone::toString).toList();
+        model.addAttribute("whitelist", objectMapper.writeValueAsString(allZones));
+
+        model.addAttribute(account);
+
+        return SETTINGS_ZONES_VIEW_NAME;
+    }
+
+    @PostMapping(SETTINGS_ZONES_URL + "/add")
+    @ResponseBody
+    public ResponseEntity addZone(@CurrentUser Account account, @RequestBody ZoneForm zoneForm) {
+        Optional<Zone> zoneOptional = zoneRepository.findByCityAndProvince(zoneForm.getCityName(), zoneForm.getProvinceName());
+        if (zoneOptional.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        accountService.addZone(account.getEmail(), zoneOptional.get());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(SETTINGS_ZONES_URL + "/remove")
+    @ResponseBody
+    public ResponseEntity removeZone(@CurrentUser Account account, @RequestBody ZoneForm zoneForm) {
+        Optional<Zone> zoneOptional = zoneRepository.findByCityAndProvince(zoneForm.getCityName(), zoneForm.getProvinceName());
+        if (zoneOptional.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        accountService.removeZone(account.getEmail(), zoneOptional.get());
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping(SETTINGS_TAGS_URL)
