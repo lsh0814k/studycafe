@@ -20,6 +20,8 @@ import static lombok.AccessLevel.*;
 public class StudyQueryForm {
     private Set<ZonesQueryForm> zones;
     private Set<TagsQueryForm> tags;
+    private Set<Account> members;
+    private Set<Account> managers;
     private String path;
     private String title;
     private String shortDescription;
@@ -48,6 +50,14 @@ public class StudyQueryForm {
                                 .title(t.getTitle())
                                 .build()
                         )
+                        .collect(Collectors.toSet())
+                )
+                .members(study.getMembers().stream()
+                        .map(StudyMember::getAccount)
+                        .collect(Collectors.toSet())
+                )
+                .managers(study.getManagers().stream()
+                        .map(StudyManager::getAccount)
                         .collect(Collectors.toSet())
                 )
                 .path(study.getPath())

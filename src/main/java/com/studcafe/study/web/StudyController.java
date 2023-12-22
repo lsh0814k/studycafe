@@ -62,4 +62,14 @@ public class StudyController {
 
         return "study/view";
     }
+
+    @GetMapping("/study/{path}/members")
+    public String viewStudyMembers(@CurrentUser Account account, @PathVariable("path") String path, Model model) {
+        Study study = studyRepository.findByPath(path).orElseThrow(() -> new IllegalStateException("존재하지 않는 스터디 입니다."));
+
+        model.addAttribute("study", StudyQueryForm.createForm(study, account));
+        model.addAttribute(account);
+
+        return "study/members";
+    }
 }
