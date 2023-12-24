@@ -33,4 +33,24 @@ public class StudyService {
 
         return study;
     }
+
+    @Transactional(readOnly = true)
+    public Study getStudyToView(String path, Account account) {
+        Study study = studyRepository.findAllByPath(path).orElseThrow(() -> new IllegalStateException("존재하지 않는 스터디 입니다."));
+        if (!study.isManagerOf(account)) {
+            throw new AccessDeniedException("해당 기능을 사용할 수 없습니다.");
+        }
+
+        return study;
+    }
+
+    public void updateUseBanner(Long id, boolean useBanner) {
+        Study findStudy = studyRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스터디 입니다."));
+        findStudy.updateUseBanner(useBanner);
+    }
+
+    public void updateBanner(Long id, String image) {
+        Study findStudy = studyRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스터디 입니다."));
+        findStudy.updateBanner(image);
+    }
 }

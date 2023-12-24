@@ -14,7 +14,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -39,16 +40,9 @@ class StudySettingsControllerTest {
     @DisplayName("스터디 description 수정 form")
     @WithAccount("nick")
     void description_form() throws Exception {
-        Account account = accountRepository.findByNickname("nick").get();
-        Study study = Study.builder()
-                .path("test-path")
-                .title("study title")
-                .fullDescription("short description of a study")
-                .shortDescription("full description of a study")
-                .build();
-        studyService.createNewStudy(account, study);
+        Study study = createStudy();
 
-        mockMvc.perform(get("/study/test-path/settings/description"))
+        mockMvc.perform(get("/study/" + study.getPath() + "/settings/description"))
                 .andExpect(model().attributeExists("account"))
                 .andExpect(model().attributeExists("study"))
                 .andExpect(model().attributeExists("studyDescriptionForm"))
@@ -60,16 +54,9 @@ class StudySettingsControllerTest {
     @DisplayName("스터디 description 수정")
     @WithAccount("nick")
     void description_success() throws Exception {
-        Account account = accountRepository.findByNickname("nick").get();
-        Study study = Study.builder()
-                .path("test-path")
-                .title("study title")
-                .fullDescription("short description of a study")
-                .shortDescription("full description of a study")
-                .build();
-        studyService.createNewStudy(account, study);
+        Study study = createStudy();
 
-        mockMvc.perform(post("/study/test-path/settings/description")
+        mockMvc.perform(post("/study/"+ study.getPath() +"/settings/description")
                 .param("fullDescription", "update full description of a study")
                 .param("shortDescription", "update short description of a study")
                 .with(csrf())
@@ -81,5 +68,62 @@ class StudySettingsControllerTest {
         Study findStudy = studyRepository.findByPath("test-path").get();
         assertTrue(findStudy.getFullDescription().equals("update full description of a study"));
         assertTrue(findStudy.getShortDescription().equals("update short description of a study"));
+    }
+
+
+
+    @Test
+    @DisplayName("스터디 banner form")
+    @WithAccount("nick")
+    void banner_form() throws Exception {
+        Study study = createStudy();
+        mockMvc.perform(get("/study/" + study.getPath() + "/settings/banner"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("account"))
+                .andExpect(model().attributeExists("study"));
+    }
+
+    @Test
+    @DisplayName("스터디 banner enable")
+    @WithAccount("nick")
+    void banner_enable() throws Exception {
+        Study study = createStudy();
+        mockMvc.perform(post("/study/" + study.getPath() + "/settings/banner/enable")
+                .with(csrf())
+        )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/study/" + study.getPath() + "/settings/banner"));
+
+        Study findStudy = studyRepository.findByPath("test-path").get();
+        assertTrue(findStudy.isUseBanner());
+    }
+
+    @Test
+    @DisplayName("스터디 banner disable")
+    @WithAccount("nick")
+    void banner_disable() throws Exception {
+        Study study = createStudy();
+        mockMvc.perform(post("/study/" + study.getPath() + "/settings/banner/disable")
+                        .with(csrf())
+                )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/study/" + study.getPath() + "/settings/banner"));
+
+        Study findStudy = studyRepository.findByPath("test-path").get();
+        assertFalse(findStudy.isUseBanner());
+    }
+
+
+    private Study createStudy() {
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = Study.builder()
+                .path("test-path")
+                .title("study title")
+                .fullDescription("short description of a study")
+                .shortDescription("full description of a study")
+                .build();
+        studyService.createNewStudy(account, study);
+
+        return study;
     }
 }

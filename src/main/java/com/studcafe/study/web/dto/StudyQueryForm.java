@@ -33,6 +33,7 @@ public class StudyQueryForm {
     private Boolean isManager;
     private Boolean isJoinable;
     private Boolean isMember;
+    private String image;
 
 
     public static StudyQueryForm createForm(Study study, Account account) {
@@ -67,10 +68,12 @@ public class StudyQueryForm {
                 .published(study.isPublished())
                 .closed(study.isClosed())
                 .recruiting(study.isRecruiting())
-                .recruiting(study.isUseBanner())
+                .recruiting(study.isRecruiting())
                 .isJoinable(getisJoinable(study, account))
                 .isMember(getIsMember(study, account))
                 .isManager(getIsManager(study, account))
+                .useBanner(study.isUseBanner())
+                .image(study.getImage())
                 .build();
     }
 

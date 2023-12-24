@@ -82,4 +82,12 @@ public class Study {
     public boolean isManagerOf(Account account) {
         return managers.stream().map(StudyManager::getAccount).filter(a -> a.equals(account)).count() == 1;
     }
+
+    public void updateUseBanner(boolean useBanner) {
+        this.useBanner = useBanner;
+    }
+
+    public void updateBanner(String image) {
+        this.image = image;
+    }
 }

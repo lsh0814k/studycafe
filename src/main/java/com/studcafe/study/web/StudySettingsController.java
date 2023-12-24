@@ -28,7 +28,7 @@ public class StudySettingsController {
 
     @GetMapping("/description")
     public String descriptionForm(@CurrentUser Account account, @PathVariable("path") String path, Model model) {
-        Study study = studyRepository.findAllByPath(path).orElseThrow(() -> new IllegalStateException("존재하지 않는 스터디 입니다."));
+        Study study = studyService.getStudyToView(path, account);
         model.addAttribute(account);
         model.addAttribute("study", StudyQueryForm.createForm(study, account));
         model.addAttribute(new StudyDescriptionForm(study));
@@ -48,5 +48,40 @@ public class StudySettingsController {
         studyService.updateStudyDescription(study.getId(), studyDescriptionForm.createStudy());
         redirectAttributes.addFlashAttribute("message", "스터디 소개를 수정했습니다.");
         return String.format("redirect:/study/%s/settings/description", URLEncoder.encode(path, UTF_8));
+    }
+
+    @GetMapping("/banner")
+    public String studyBannerForm(@CurrentUser Account account, @PathVariable("path") String path, Model model) {
+        Study study = studyService.getStudyToView(path, account);
+        model.addAttribute(account);
+        model.addAttribute("study", StudyQueryForm.createForm(study, account));
+
+        return "study/settings/banner";
+    }
+
+    @PostMapping("/banner")
+    public String updateStudyBanner(@CurrentUser Account account, @PathVariable("path") String path, RedirectAttributes redirectAttributes,
+                                    @ModelAttribute("image") String image) {
+        Study study = studyService.getStudyToUpdate(path, account);
+        studyService.updateBanner(study.getId(), image);
+
+        redirectAttributes.addFlashAttribute("message" ,"스터디 이미지를 수정했습니다.");
+        return String.format("redirect:/study/%s/settings/banner", URLEncoder.encode(path, UTF_8));
+    }
+
+    @PostMapping("/banner/enable")
+    public String enableBanner(@CurrentUser Account account, @PathVariable("path") String path, RedirectAttributes redirectAttributes) {
+        Study study = studyService.getStudyToUpdate(path, account);
+        studyService.updateUseBanner(study.getId(), true);
+
+        return String.format("redirect:/study/%s/settings/banner", URLEncoder.encode(path, UTF_8));
+    }
+
+    @PostMapping("/banner/disable")
+    public String disableBanner(@CurrentUser Account account, @PathVariable("path") String path, RedirectAttributes redirectAttributes) {
+        Study study = studyService.getStudyToUpdate(path, account);
+        studyService.updateUseBanner(study.getId(), false);
+
+        return String.format("redirect:/study/%s/settings/banner", URLEncoder.encode(path, UTF_8));
     }
 }
