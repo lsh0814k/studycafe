@@ -42,8 +42,9 @@ public class StudyController {
     }
 
     @PostMapping("/new-study")
-    public String newStudy(@CurrentUser Account account, @ModelAttribute("studyForm") @Valid StudyForm studyForm, BindingResult bindingResult) {
+    public String newStudy(@CurrentUser Account account, @ModelAttribute("studyForm") @Valid StudyForm studyForm, BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
+            model.addAttribute(account);
             return "study/form";
         }
 
