@@ -18,5 +18,5 @@ public interface StudyRepository extends JpaRepository<Study, Long> {
             "left join fetch ma.account maa " +
             "left join fetch s.members me " +
             "left join fetch me.account mea")
-    Optional<Study> findByPath(String path);
+    Optional<Study> findAllByPath(String path);
 }
