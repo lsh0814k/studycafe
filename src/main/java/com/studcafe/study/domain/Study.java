@@ -1,7 +1,6 @@
 package com.studcafe.study.domain;
 
 import com.studcafe.account.domain.Account;
-import com.studcafe.security.UserAccount;
 import com.studcafe.tag.domain.Tag;
 import com.studcafe.zone.domain.Zone;
 import jakarta.persistence.*;
@@ -73,5 +72,14 @@ public class Study {
                 .build();
 
         managers.add(studyManager);
+    }
+
+    public void updateDescription(Study study) {
+        this.fullDescription = study.getFullDescription();
+        this.shortDescription = study.getShortDescription();
+    }
+
+    public boolean isManagerOf(Account account) {
+        return managers.stream().map(StudyManager::getAccount).filter(a -> a.equals(account)).count() == 1;
     }
 }
