@@ -87,4 +87,28 @@ public class StudyService {
     public void removeZone(Study study, Zone zone) {
         study.getZones().remove(zone);
     }
+
+    public void publish(Study study) {
+        study.publish();
+    }
+
+    public void close(Study study) {
+        study.close();
+    }
+
+    public void updateStudyTitle(Study study, String title) {
+        study.updateStudyTitle(title);
+    }
+
+    public void updateStudyPath(Study study, String path) {
+        study.updateStudyPath(path);
+    }
+
+    public void remove(Study study) {
+        if (study.isRemovable()) {
+            studyRepository.delete(study);
+        } else {
+            throw new IllegalArgumentException("스터디를 삭제할 수 없습니다.");
+        }
+    }
 }

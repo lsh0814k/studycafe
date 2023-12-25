@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -33,7 +34,9 @@ public class StudyQueryForm {
     private Boolean isManager;
     private Boolean isJoinable;
     private Boolean isMember;
+    private Boolean isRemovable;
     private String image;
+    private LocalDateTime closedDateTime;
 
 
     public static StudyQueryForm createForm(Study study, Account account) {
@@ -74,6 +77,8 @@ public class StudyQueryForm {
                 .isManager(getIsManager(study, account))
                 .useBanner(study.isUseBanner())
                 .image(study.getImage())
+                .isRemovable(study.isRemovable())
+                .closedDateTime(study.getClosedDateTime())
                 .build();
     }
 

@@ -10,21 +10,23 @@ import com.studcafe.study.domain.Study;
 import com.studcafe.study.repository.StudyRepository;
 import com.studcafe.study.service.StudyService;
 import com.studcafe.study.web.dto.StudyDescriptionForm;
+import com.studcafe.study.web.dto.StudyPathForm;
 import com.studcafe.study.web.dto.StudyQueryForm;
+import com.studcafe.study.web.dto.StudyTitleForm;
+import com.studcafe.study.web.validator.StudyPathFormValidator;
 import com.studcafe.tag.domain.Tag;
 import com.studcafe.tag.dto.TagsQueryForm;
 import com.studcafe.tag.repository.TagRepository;
 import com.studcafe.tag.service.TagService;
 import com.studcafe.zone.domain.Zone;
-import com.studcafe.zone.dto.ZonesQueryForm;
 import com.studcafe.zone.repository.ZoneRepository;
-import jakarta.persistence.Access;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -43,7 +45,12 @@ public class StudySettingsController {
     private final TagService tagService;
     private final ZoneRepository zoneRepository;
     private final ObjectMapper objectMapper;
+    private final StudyPathFormValidator studyPathFormValidator;
 
+    @InitBinder("studyPathForm")
+    public void studyPathFormInitBinder(WebDataBinder webDataBinder) {
+        webDataBinder.addValidators(studyPathFormValidator);
+    }
 
     @GetMapping("/description")
     public String descriptionForm(@CurrentUser Account account, @PathVariable("path") String path, Model model) {
@@ -179,4 +186,75 @@ public class StudySettingsController {
 
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/study")
+    public String studyForm(@CurrentUser Account account, @PathVariable("path") String path, Model model) {
+        Study study = studyService.getStudyToView(path, account);
+        model.addAttribute(account);
+        model.addAttribute("study", StudyQueryForm.createForm(study, account));
+        model.addAttribute(StudyTitleForm.builder().newTitle(study.getTitle()).build());
+        model.addAttribute(StudyPathForm.builder().newPath(study.getPath()).build());
+        return "study/settings/study";
+    }
+
+    @PostMapping("/study/publish")
+    public String publishStudy(@CurrentUser Account account, @PathVariable("path") String path, RedirectAttributes redirectAttributes) {
+        Study study = studyService.getStudyToUpdate(path, account);
+        studyService.publish(study);
+
+        redirectAttributes.addFlashAttribute("message", "스터디를 공개했습니다.");
+        return String.format("redirect:/study/%s/settings/study", URLEncoder.encode(path, UTF_8));
+    }
+
+    @PostMapping("/study/close")
+    public String closeStudy(@CurrentUser Account account, @PathVariable("path") String path, RedirectAttributes redirectAttributes) {
+        Study study = studyService.getStudyToUpdate(path, account);
+        studyService.close(study);
+
+        redirectAttributes.addFlashAttribute("message", "스터디를 공개했습니다.");
+        return String.format("redirect:/study/%s/settings/study", URLEncoder.encode(path, UTF_8));
+    }
+
+    @PostMapping("/study/path")
+    public String updateStudyPath(@CurrentUser Account account, @PathVariable("path") String path, RedirectAttributes redirectAttributes, Model model,
+                                  @ModelAttribute("studyPathForm") StudyPathForm studyPathForm, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            Study study = studyService.getStudyToView(path, account);
+            model.addAttribute(account);
+            model.addAttribute("study", StudyQueryForm.createForm(study, account));
+
+            return "study/settings/study";
+        }
+
+        Study study = studyService.getStudyToUpdate(path, account);
+        studyService.updateStudyPath(study, studyPathForm.getNewPath());
+
+        redirectAttributes.addFlashAttribute("message", "스터디 경로를 수정했습니다.");
+        return String.format("redirect:/study/%s/settings/study", URLEncoder.encode(studyPathForm.getNewPath(), UTF_8));
+    }
+
+    @PostMapping("/study/title")
+    public String updateStudyTitle(@CurrentUser Account account, @PathVariable("path") String path, RedirectAttributes redirectAttributes, Model model,
+                                   @ModelAttribute("studyTitleForm") StudyTitleForm studyTitleForm, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            Study study = studyService.getStudyToView(path, account);
+            model.addAttribute(account);
+            model.addAttribute("study", StudyQueryForm.createForm(study, account));
+
+            return "study/settings/study";
+        }
+        Study study = studyService.getStudyToUpdate(path, account);
+        studyService.updateStudyTitle(study, studyTitleForm.getNewTitle());
+
+        redirectAttributes.addFlashAttribute("message", "스터디 이름을 수정했습니다.");
+        return String.format("redirect:/study/%s/settings/study", URLEncoder.encode(path, UTF_8));
+    }
+
+    @PostMapping("/study/remove")
+    public String removeStudy(@CurrentUser Account account, @PathVariable("path") String path) {
+        Study study = studyService.getStudyToUpdate(path, account);
+        studyService.remove(study);
+        return "redirect:/";
+    }
+
 }
