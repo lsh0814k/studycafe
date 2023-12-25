@@ -9,7 +9,6 @@ import com.studcafe.security.annotation.WithAccount;
 import com.studcafe.study.domain.Study;
 import com.studcafe.study.repository.StudyRepository;
 import com.studcafe.study.service.StudyService;
-import com.studcafe.study.web.dto.StudyPathForm;
 import com.studcafe.tag.domain.Tag;
 import com.studcafe.tag.service.TagService;
 import com.studcafe.zone.domain.Zone;
@@ -20,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -152,7 +150,7 @@ class StudySettingsControllerTest {
         )
                 .andExpect(status().isOk());
 
-        Study findStudy = studyRepository.findAccountWithTagsByPath(study.getPath()).get();
+        Study findStudy = studyRepository.findStudyWithTagsByPath(study.getPath()).get();
         assertTrue(findStudy.getTags().stream().filter(t -> t.getTitle().equals(tagForm.getTagTitle())).count() == 1);
     }
 
@@ -174,7 +172,7 @@ class StudySettingsControllerTest {
                 )
                 .andExpect(status().isOk());
 
-        Study findStudy = studyRepository.findAccountWithTagsByPath(study.getPath()).get();
+        Study findStudy = studyRepository.findStudyWithTagsByPath(study.getPath()).get();
         assertTrue(findStudy.getTags().isEmpty());
     }
 
@@ -207,7 +205,7 @@ class StudySettingsControllerTest {
         )
                 .andExpect(status().isOk());
 
-        Study findStudy = studyRepository.findAccountWithZonesByPath(study.getPath()).get();
+        Study findStudy = studyRepository.findStudyWithZonesByPath(study.getPath()).get();
         assertTrue(findStudy.getZones().contains(zone));
     }
 
@@ -230,7 +228,7 @@ class StudySettingsControllerTest {
         )
                 .andExpect(status().isOk());
 
-        Study findStudy = studyRepository.findAccountWithZonesByPath(study.getPath()).get();
+        Study findStudy = studyRepository.findStudyWithZonesByPath(study.getPath()).get();
         assertTrue(findStudy.getZones().isEmpty());
     }
 

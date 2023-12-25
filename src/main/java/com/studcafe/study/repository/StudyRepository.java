@@ -29,12 +29,12 @@ public interface StudyRepository extends JpaRepository<Study, Long> {
             "left join fetch s.managers m " +
             "left join fetch m.account " +
             "where s.path = :path")
-    Optional<Study> findAccountWithTagsByPath(@Param("path") String path);
+    Optional<Study> findStudyWithTagsByPath(@Param("path") String path);
 
     @Query(value = "select s from Study s " +
             "left join fetch s.zones " +
             "left join fetch s.managers m " +
             "left join fetch m.account " +
             "where s.path = :path")
-    Optional<Study> findAccountWithZonesByPath(@Param("path") String path);
+    Optional<Study> findStudyWithZonesByPath(@Param("path") String path);
 }

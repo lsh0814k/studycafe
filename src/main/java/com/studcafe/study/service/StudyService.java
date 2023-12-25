@@ -53,7 +53,7 @@ public class StudyService {
     }
 
     public Study getStudyToUpdateTag(Account account, String path) {
-        Study study = studyRepository.findAccountWithTagsByPath(path).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스터디 입니다."));
+        Study study = studyRepository.findStudyWithTagsByPath(path).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스터디 입니다."));
         checkIfManager(account, study);
 
         return study;
@@ -70,7 +70,7 @@ public class StudyService {
     }
 
     public Study getStudyToUpdateZone(Account account, String path) {
-        Study study = studyRepository.findAccountWithZonesByPath(path).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스터디 입니다."));
+        Study study = studyRepository.findStudyWithZonesByPath(path).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스터디 입니다."));
         checkIfManager(account, study);
 
         return study;
