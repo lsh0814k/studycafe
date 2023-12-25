@@ -4,24 +4,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.studcafe.account.domain.Account;
 import com.studcafe.account.repository.AccountRepository;
 import com.studcafe.account.web.dto.TagForm;
+import com.studcafe.account.web.dto.ZoneForm;
 import com.studcafe.security.annotation.WithAccount;
 import com.studcafe.study.domain.Study;
 import com.studcafe.study.repository.StudyRepository;
 import com.studcafe.study.service.StudyService;
 import com.studcafe.tag.domain.Tag;
 import com.studcafe.tag.service.TagService;
+import com.studcafe.zone.domain.Zone;
+import com.studcafe.zone.repository.ZoneRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.http.MediaType.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -37,6 +39,7 @@ class StudySettingsControllerTest {
     @Autowired private StudyService studyService;
     @Autowired private ObjectMapper objectMapper;
     @Autowired private TagService tagService;
+    @Autowired private ZoneRepository zoneRepository;
 
     @AfterEach
     void afterEach() {
@@ -128,6 +131,7 @@ class StudySettingsControllerTest {
         Study study = createStudy();
         mockMvc.perform(get("/study/" + study.getPath() + "/settings/tags"))
                 .andExpect(status().isOk())
+                .andExpect(view().name("study/settings/tags"))
                 .andExpect(model().attributeExists("whitelist"))
                 .andExpect(model().attributeExists("study"))
                 .andExpect(model().attributeExists("tags"));
@@ -170,6 +174,60 @@ class StudySettingsControllerTest {
 
         Study findStudy = studyRepository.findAccountWithTagsByPath(study.getPath()).get();
         assertTrue(findStudy.getTags().isEmpty());
+    }
+
+    @Test
+    @DisplayName("스터디 활동지역 form")
+    @WithAccount("nick")
+    void zone_form() throws Exception {
+        Study study = createStudy();
+        mockMvc.perform(get("/study/" + study.getPath() + "/settings/zones"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("account"))
+                .andExpect(model().attributeExists("whitelist"))
+                .andExpect(model().attributeExists("zones"))
+                .andExpect(view().name("study/settings/zones"));
+    }
+
+    @Test
+    @DisplayName("스터디 활동지역 추가")
+    @WithAccount("nick")
+    void zone_add() throws Exception {
+        Study study = createStudy();
+        Zone zone = zoneRepository.findByCityAndProvince("Ansan", "Gyeonggi").get();
+        ZoneForm zoneForm = new ZoneForm();
+        zoneForm.setZoneName(zone.toString());
+
+        mockMvc.perform(post("/study/" + study.getPath() + "/settings/zones/add")
+                .with(csrf())
+                .contentType(APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(zoneForm))
+        )
+                .andExpect(status().isOk());
+
+        Study findStudy = studyRepository.findAccountWithZonesByPath(study.getPath()).get();
+        assertTrue(findStudy.getZones().contains(zone));
+    }
+
+    @Test
+    @DisplayName("스터디 활동지역 삭제")
+    @WithAccount("nick")
+    void zone_remove() throws Exception {
+        Study study = createStudy();
+        Zone zone = zoneRepository.findByCityAndProvince("Ansan", "Gyeonggi").get();
+        ZoneForm zoneForm = new ZoneForm();
+        zoneForm.setZoneName(zone.toString());
+        studyService.addZone(study, zone);
+
+        mockMvc.perform(post("/study/" + study.getPath() + "/settings/zones/remove")
+                .with(csrf())
+                .content(objectMapper.writeValueAsString(zoneForm))
+                .contentType(APPLICATION_JSON)
+        )
+                .andExpect(status().isOk());
+
+        Study findStudy = studyRepository.findAccountWithZonesByPath(study.getPath()).get();
+        assertTrue(findStudy.getZones().isEmpty());
     }
 
     private Study createStudy() {

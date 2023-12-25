@@ -4,6 +4,7 @@ import com.studcafe.account.domain.Account;
 import com.studcafe.study.domain.Study;
 import com.studcafe.study.repository.StudyRepository;
 import com.studcafe.tag.domain.Tag;
+import com.studcafe.zone.domain.Zone;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -66,9 +67,24 @@ public class StudyService {
         study.getTags().remove(tag);
     }
 
+    public Study getStudyToUpdateZone(Account account, String path) {
+        Study study = studyRepository.findAccountWithZonesByPath(path).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스터디 입니다."));
+        checkIfManager(account, study);
+
+        return study;
+    }
+
     private void checkIfManager(Account account, Study study) {
         if (!study.isManagerOf(account)) {
             throw new AccessDeniedException("해당 기능을 사용할 수 없습니다.");
         }
+    }
+
+    public void addZone(Study study, Zone zone) {
+        study.getZones().add(zone);
+    }
+
+    public void removeZone(Study study, Zone zone) {
+        study.getZones().remove(zone);
     }
 }

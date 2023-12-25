@@ -1,7 +1,10 @@
 package com.studcafe.study.web;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.studcafe.account.domain.Account;
 import com.studcafe.account.web.dto.TagForm;
+import com.studcafe.account.web.dto.ZoneForm;
 import com.studcafe.main.annotation.CurrentUser;
 import com.studcafe.study.domain.Study;
 import com.studcafe.study.repository.StudyRepository;
@@ -12,6 +15,10 @@ import com.studcafe.tag.domain.Tag;
 import com.studcafe.tag.dto.TagsQueryForm;
 import com.studcafe.tag.repository.TagRepository;
 import com.studcafe.tag.service.TagService;
+import com.studcafe.zone.domain.Zone;
+import com.studcafe.zone.dto.ZonesQueryForm;
+import com.studcafe.zone.repository.ZoneRepository;
+import jakarta.persistence.Access;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +41,8 @@ public class StudySettingsController {
     private final StudyService studyService;
     private final TagRepository tagRepository;
     private final TagService tagService;
+    private final ZoneRepository zoneRepository;
+    private final ObjectMapper objectMapper;
 
 
     @GetMapping("/description")
@@ -96,13 +105,13 @@ public class StudySettingsController {
     }
 
     @GetMapping("/tags")
-    public String tagsForm(@CurrentUser Account account, @PathVariable("path") String path, Model model) {
+    public String tagsForm(@CurrentUser Account account, @PathVariable("path") String path, Model model) throws JsonProcessingException {
 
         Study study = studyService.getStudyToView(path, account);
         StudyQueryForm studyQueryForm = StudyQueryForm.createForm(study, account);
         model.addAttribute(account);
         model.addAttribute("study", studyQueryForm);
-        model.addAttribute("whitelist", tagRepository.findAll().stream().map(Tag::getTitle).toList());
+        model.addAttribute("whitelist", objectMapper.writeValueAsString(tagRepository.findAll().stream().map(Tag::getTitle).toList()));
         model.addAttribute("tags", studyQueryForm.getTags().stream().map(TagsQueryForm::getTitle).toList());
 
         return "study/settings/tags";
@@ -128,6 +137,45 @@ public class StudySettingsController {
 
         Study study = studyService.getStudyToUpdateTag(account, path);
         studyService.removeTag(study, tagOptional.get());
+
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/zones")
+    public String zonesForm(@CurrentUser Account account, @PathVariable("path") String path, Model model) throws JsonProcessingException {
+        Study study = studyService.getStudyToUpdateZone(account, path);
+        model.addAttribute(account);
+        StudyQueryForm studyQueryForm = StudyQueryForm.createForm(study, account);
+        model.addAttribute("study", studyQueryForm);
+        model.addAttribute("whitelist", objectMapper.writeValueAsString(zoneRepository.findAll().stream().map(Zone::toString).toList()));
+        model.addAttribute("zones", study.getZones().stream().map(Zone::toString).toList());
+        return "study/settings/zones";
+    }
+
+    @PostMapping("/zones/add")
+    @ResponseBody
+    public ResponseEntity addZone(@CurrentUser Account account, @PathVariable("path") String path, @RequestBody ZoneForm zoneForm) {
+        Optional<Zone> zoneOptional = zoneRepository.findByCityAndProvince(zoneForm.getCityName(), zoneForm.getProvinceName());
+        if (zoneOptional.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Study study = studyService.getStudyToUpdateZone(account, path);
+        studyService.addZone(study, zoneOptional.get());
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/zones/remove")
+    @ResponseBody
+    public ResponseEntity removeZone(@CurrentUser Account account, @PathVariable("path") String path, @RequestBody ZoneForm zoneForm) {
+        Optional<Zone> zoneOptional = zoneRepository.findByCityAndProvince(zoneForm.getCityName(), zoneForm.getProvinceName());
+        if (zoneOptional.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Study study = studyService.getStudyToUpdateZone(account, path);
+        studyService.removeZone(study, zoneOptional.get());
 
         return ResponseEntity.ok().build();
     }
