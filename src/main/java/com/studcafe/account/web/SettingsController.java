@@ -9,6 +9,7 @@ import com.studcafe.account.service.AccountService;
 import com.studcafe.account.web.validator.PasswordValidator;
 import com.studcafe.main.annotation.CurrentUser;
 import com.studcafe.tag.repository.TagRepository;
+import com.studcafe.tag.service.TagService;
 import com.studcafe.zone.domain.Zone;
 import com.studcafe.zone.repository.ZoneRepository;
 import jakarta.validation.Valid;
@@ -51,6 +52,7 @@ public class SettingsController {
     private final ObjectMapper objectMapper;
     private final TagRepository tagRepository;
     private final ZoneRepository zoneRepository;
+    private final TagService tagService;
 
     @InitBinder("passwordForm")
     public void initBinder(WebDataBinder webDataBinder) {
@@ -108,7 +110,8 @@ public class SettingsController {
     @PostMapping(SETTINGS_TAGS_URL + "/add")
     @ResponseBody
     public ResponseEntity addTag(@CurrentUser Account account, @RequestBody TagForm tagForm) {
-        accountService.addTag(account.getEmail(), tagForm.getTagTitle());
+        Tag tag = tagService.findOrCreateNew(tagForm.getTagTitle());
+        accountService.addTag(account.getEmail(), tag);
         return ResponseEntity.ok().build();
     }
 

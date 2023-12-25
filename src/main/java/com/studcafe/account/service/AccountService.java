@@ -76,10 +76,8 @@ public class AccountService {
     }
 
     @Transactional
-    public void addTag(String email, String title) {
+    public void addTag(String email, Tag tag) {
         Account findAccount = accountRepository.findWithTagsByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
-        Tag tag = tagRepository.findByTitle(title).orElseGet(() -> tagRepository.save(Tag.builder().title(title).build()));
-
         findAccount.addTags(tag);
     }
 
