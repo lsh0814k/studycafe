@@ -71,4 +71,16 @@ public class StudyController {
 
         return "study/members";
     }
+
+    @PostMapping("/study/{path}/join")
+    public String joinStudy(@CurrentUser Account account, @PathVariable("path") String path) {
+        studyService.addMember(path, account);
+        return String.format("redirect:/study/%s/members", path);
+    }
+
+    @PostMapping("/study/{path}/leave")
+    public String leaveStudy(@CurrentUser Account account, @PathVariable("path") String path) {
+        studyService.removeMember(path, account);
+        return String.format("redirect:/study/%s/members", path);
+    }
 }

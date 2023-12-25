@@ -8,6 +8,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import static jakarta.persistence.CascadeType.*;
@@ -120,5 +121,17 @@ public class Study {
     public Boolean isRemovable() {
         // TODO 모임을 했던 스터디는 삭제할 수 없다.
         return !this.published;
+    }
+
+    public void removeMember(Account account) {
+        StudyMember studyMember = this.members.stream()
+                .filter(m -> m.getAccount().equals(account))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("스터디 멤버가 아닙니다."));
+        this.members.remove(studyMember);
+    }
+
+    public void addMember(Account account) {
+        this.members.add(StudyMember.builder().study(this).account(account).build());
     }
 }
