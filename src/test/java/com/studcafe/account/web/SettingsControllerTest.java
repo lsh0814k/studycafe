@@ -205,7 +205,10 @@ class SettingsControllerTest {
     @DisplayName("관심 주제 조회")
     @Test
     void tags_search() throws Exception{
-        accountService.addTag("nick@email.com", "Spring");
+        Tag tag = Tag.builder()
+                    .title("Spring")
+                    .build();
+        accountService.addTag("nick@email.com", tag);
 
         mockMvc.perform(get(SettingsController.SETTINGS_TAGS_URL))
                 .andExpect(status().isOk())
@@ -219,9 +222,9 @@ class SettingsControllerTest {
     @DisplayName("관심 주제 삭제")
     @Test
     void tags_remove() throws Exception {
-        accountService.addTag("nick@email.com", "Spring");
-        accountService.addTag("nick@email.com", "Jpa");
-        accountService.addTag("nick@email.com", "Java");
+        accountService.addTag("nick@email.com", Tag.builder().title("Spring").build());
+        accountService.addTag("nick@email.com", Tag.builder().title("JPA").build());
+        accountService.addTag("nick@email.com", Tag.builder().title("Java").build());
 
         TagForm tagForm = new TagForm();
         tagForm.setTagTitle("Spring");

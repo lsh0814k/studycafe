@@ -21,4 +21,10 @@ public interface StudyRepository extends JpaRepository<Study, Long> {
     Optional<Study> findAllByPath(String path);
 
     Optional<Study> findByPath(String path);
+
+    @Query(value = "select s from Study s " +
+            "left join fetch s.tags " +
+            "left join fetch s.managers m " +
+            "left join fetch m.account")
+    Optional<Study> findAccountWithTagsByPath(String path);
 }

@@ -1,14 +1,20 @@
 package com.studcafe.study.web;
 
 import com.studcafe.account.domain.Account;
+import com.studcafe.account.web.dto.TagForm;
 import com.studcafe.main.annotation.CurrentUser;
 import com.studcafe.study.domain.Study;
 import com.studcafe.study.repository.StudyRepository;
 import com.studcafe.study.service.StudyService;
 import com.studcafe.study.web.dto.StudyDescriptionForm;
 import com.studcafe.study.web.dto.StudyQueryForm;
+import com.studcafe.tag.domain.Tag;
+import com.studcafe.tag.dto.TagsQueryForm;
+import com.studcafe.tag.repository.TagRepository;
+import com.studcafe.tag.service.TagService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -16,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.net.URLEncoder;
+import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -25,6 +32,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class StudySettingsController {
     private final StudyRepository studyRepository;
     private final StudyService studyService;
+    private final TagRepository tagRepository;
+    private final TagService tagService;
+
 
     @GetMapping("/description")
     public String descriptionForm(@CurrentUser Account account, @PathVariable("path") String path, Model model) {
@@ -83,5 +93,42 @@ public class StudySettingsController {
         studyService.updateUseBanner(study.getId(), false);
 
         return String.format("redirect:/study/%s/settings/banner", URLEncoder.encode(path, UTF_8));
+    }
+
+    @GetMapping("/tags")
+    public String tagsForm(@CurrentUser Account account, @PathVariable("path") String path, Model model) {
+
+        Study study = studyService.getStudyToView(path, account);
+        StudyQueryForm studyQueryForm = StudyQueryForm.createForm(study, account);
+        model.addAttribute(account);
+        model.addAttribute("study", studyQueryForm);
+        model.addAttribute("whitelist", tagRepository.findAll().stream().map(Tag::getTitle).toList());
+        model.addAttribute("tags", studyQueryForm.getTags().stream().map(TagsQueryForm::getTitle).toList());
+
+        return "study/settings/tags";
+    }
+
+    @PostMapping("/tags/add")
+    @ResponseBody
+    public ResponseEntity addTag(@CurrentUser Account account, @PathVariable("path") String path, @RequestBody TagForm tagForm) {
+        Study study = studyService.getStudyToUpdateTag(account, path);
+        Tag tag = tagService.findOrCreateNew(tagForm.getTagTitle());
+        studyService.addTag(study, tag);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/tags/remove")
+    @ResponseBody
+    public ResponseEntity removeTags(@CurrentUser Account account, @PathVariable("path") String path, @RequestBody TagForm tagForm) {
+        Optional<Tag> tagOptional = tagRepository.findByTitle(tagForm.getTagTitle());
+        if (tagOptional.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Study study = studyService.getStudyToUpdateTag(account, path);
+        studyService.removeTag(study, tagOptional.get());
+
+        return ResponseEntity.ok().build();
     }
 }
