@@ -9,6 +9,7 @@ import com.studcafe.security.annotation.WithAccount;
 import com.studcafe.study.domain.Study;
 import com.studcafe.study.repository.StudyRepository;
 import com.studcafe.study.service.StudyService;
+import com.studcafe.study.web.dto.StudyPathForm;
 import com.studcafe.tag.domain.Tag;
 import com.studcafe.tag.service.TagService;
 import com.studcafe.zone.domain.Zone;
@@ -19,10 +20,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -163,7 +164,8 @@ class StudySettingsControllerTest {
         TagForm tagForm = new TagForm();
         tagForm.setTagTitle("Spring");
         Tag tag = tagService.findOrCreateNew(tagForm.getTagTitle());
-        studyService.addTag(study, tag);
+        Account account = accountRepository.findByNickname("nick").get();
+        studyService.addTag(study.getPath(), account, tag);
 
         mockMvc.perform(post("/study/" + study.getPath() + "/settings/tags/remove")
                         .with(csrf())
@@ -217,7 +219,9 @@ class StudySettingsControllerTest {
         Zone zone = zoneRepository.findByCityAndProvince("Ansan", "Gyeonggi").get();
         ZoneForm zoneForm = new ZoneForm();
         zoneForm.setZoneName(zone.toString());
-        studyService.addZone(study, zone);
+        Account account = accountRepository.findByNickname("nick").get();
+
+        studyService.addZone(study.getPath(), account, zone);
 
         mockMvc.perform(post("/study/" + study.getPath() + "/settings/zones/remove")
                 .with(csrf())
@@ -228,6 +232,87 @@ class StudySettingsControllerTest {
 
         Study findStudy = studyRepository.findAccountWithZonesByPath(study.getPath()).get();
         assertTrue(findStudy.getZones().isEmpty());
+    }
+
+    @Test
+    @DisplayName("스터디 폼")
+    @WithAccount("nick")
+    void study_form() throws Exception {
+        Study study = createStudy();
+        mockMvc.perform(get("/study/" + study.getPath() + "/settings/study"))
+                .andExpect(model().attributeExists("account"))
+                .andExpect(model().attributeExists("study"))
+                .andExpect(model().attributeExists("studyTitleForm"))
+                .andExpect(model().attributeExists("studyPathForm"))
+                .andExpect(view().name("study/settings/study"));
+    }
+
+    @Test
+    @DisplayName("스터디 오픈")
+    @WithAccount("nick")
+    void study_open() throws Exception {
+        Study study = createStudy();
+        mockMvc.perform(post("/study/" + study.getPath() + "/settings/study/publish")
+                .with(csrf())
+        )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("message"))
+                .andExpect(redirectedUrl(String.format("/study/%s/settings/study", study.getPath())));
+
+
+        Study findStudy = studyRepository.findById(study.getId()).get();
+        assertTrue(findStudy.isPublished());
+        assertFalse(findStudy.isClosed());
+    }
+
+    @Test
+    @DisplayName("스터디 종료")
+    @WithAccount("nick")
+    void study_close() throws Exception {
+        Study study = createStudy();
+        Account account = accountRepository.findByNickname("nick").get();
+        studyService.publish(study.getPath(), account);
+
+        mockMvc.perform(post("/study/" + study.getPath() + "/settings/study/close")
+                        .with(csrf())
+                )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("message"))
+                .andExpect(redirectedUrl(String.format("/study/%s/settings/study", study.getPath())));
+
+        Study findStudy = studyRepository.findById(study.getId()).get();
+        assertTrue(findStudy.isClosed());
+    }
+
+    @Test
+    @DisplayName("스터디 경로 수정")
+    @WithAccount("nick")
+    void study_path() throws Exception {
+        Study study = createStudy();
+        mockMvc.perform(post("/study/" + study.getPath() + "/settings/study/path")
+                        .with(csrf())
+                        .param("newPath", "aaa")
+                )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("message"))
+                .andExpect(redirectedUrl(String.format("/study/%s/settings/study", "aaa")));
+    }
+
+    @Test
+    @DisplayName("스터디 이름 수정")
+    @WithAccount("nick")
+    void study_title() throws Exception {
+        Study study = createStudy();
+        mockMvc.perform(post("/study/" + study.getPath() + "/settings/study/title")
+                        .with(csrf())
+                        .param("newTitle", "new Title")
+                )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("message"))
+                .andExpect(redirectedUrl(String.format("/study/%s/settings/study", study.getPath())));
+
+        Study findStudy = studyRepository.findById(study.getId()).get();
+        assertEquals("new Title", findStudy.getTitle());
     }
 
     private Study createStudy() {

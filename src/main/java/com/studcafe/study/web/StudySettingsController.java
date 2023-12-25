@@ -7,7 +7,6 @@ import com.studcafe.account.web.dto.TagForm;
 import com.studcafe.account.web.dto.ZoneForm;
 import com.studcafe.main.annotation.CurrentUser;
 import com.studcafe.study.domain.Study;
-import com.studcafe.study.repository.StudyRepository;
 import com.studcafe.study.service.StudyService;
 import com.studcafe.study.web.dto.StudyDescriptionForm;
 import com.studcafe.study.web.dto.StudyPathForm;
@@ -39,7 +38,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @RequestMapping("/study/{path}/settings")
 @RequiredArgsConstructor
 public class StudySettingsController {
-    private final StudyRepository studyRepository;
     private final StudyService studyService;
     private final TagRepository tagRepository;
     private final TagService tagService;
@@ -64,14 +62,14 @@ public class StudySettingsController {
     @PostMapping("/description")
     public String updateDescription(@CurrentUser Account account, @PathVariable("path") String path, Model model, RedirectAttributes redirectAttributes,
                                     @ModelAttribute("studyDescriptionForm") @Valid StudyDescriptionForm studyDescriptionForm, BindingResult bindingResult) {
-        Study study = studyService.getStudyToUpdate(path, account);
         if (bindingResult.hasErrors()) {
+            Study study = studyService.getStudyToUpdate(path, account);
             model.addAttribute(account);
             model.addAttribute("study", StudyQueryForm.createForm(study, account));
             return "study/settings/description";
         }
 
-        studyService.updateStudyDescription(study.getId(), studyDescriptionForm.createStudy());
+        studyService.updateStudyDescription(path, studyDescriptionForm.createStudy(), account);
         redirectAttributes.addFlashAttribute("message", "스터디 소개를 수정했습니다.");
         return String.format("redirect:/study/%s/settings/description", URLEncoder.encode(path, UTF_8));
     }
@@ -88,8 +86,7 @@ public class StudySettingsController {
     @PostMapping("/banner")
     public String updateStudyBanner(@CurrentUser Account account, @PathVariable("path") String path, RedirectAttributes redirectAttributes,
                                     @ModelAttribute("image") String image) {
-        Study study = studyService.getStudyToUpdate(path, account);
-        studyService.updateBanner(study.getId(), image);
+        studyService.updateBanner(path, account, image);
 
         redirectAttributes.addFlashAttribute("message" ,"스터디 이미지를 수정했습니다.");
         return String.format("redirect:/study/%s/settings/banner", URLEncoder.encode(path, UTF_8));
@@ -97,17 +94,13 @@ public class StudySettingsController {
 
     @PostMapping("/banner/enable")
     public String enableBanner(@CurrentUser Account account, @PathVariable("path") String path, RedirectAttributes redirectAttributes) {
-        Study study = studyService.getStudyToUpdate(path, account);
-        studyService.updateUseBanner(study.getId(), true);
-
+        studyService.updateUseBanner(path, account, true);
         return String.format("redirect:/study/%s/settings/banner", URLEncoder.encode(path, UTF_8));
     }
 
     @PostMapping("/banner/disable")
     public String disableBanner(@CurrentUser Account account, @PathVariable("path") String path, RedirectAttributes redirectAttributes) {
-        Study study = studyService.getStudyToUpdate(path, account);
-        studyService.updateUseBanner(study.getId(), false);
-
+        studyService.updateUseBanner(path, account, false);
         return String.format("redirect:/study/%s/settings/banner", URLEncoder.encode(path, UTF_8));
     }
 
@@ -127,9 +120,8 @@ public class StudySettingsController {
     @PostMapping("/tags/add")
     @ResponseBody
     public ResponseEntity addTag(@CurrentUser Account account, @PathVariable("path") String path, @RequestBody TagForm tagForm) {
-        Study study = studyService.getStudyToUpdateTag(account, path);
         Tag tag = tagService.findOrCreateNew(tagForm.getTagTitle());
-        studyService.addTag(study, tag);
+        studyService.addTag(path, account, tag);
 
         return ResponseEntity.ok().build();
     }
@@ -142,9 +134,7 @@ public class StudySettingsController {
             return ResponseEntity.badRequest().build();
         }
 
-        Study study = studyService.getStudyToUpdateTag(account, path);
-        studyService.removeTag(study, tagOptional.get());
-
+        studyService.removeTag(path, account, tagOptional.get());
         return ResponseEntity.ok().build();
     }
 
@@ -167,9 +157,7 @@ public class StudySettingsController {
             return ResponseEntity.badRequest().build();
         }
 
-        Study study = studyService.getStudyToUpdateZone(account, path);
-        studyService.addZone(study, zoneOptional.get());
-
+        studyService.addZone(path, account, zoneOptional.get());
         return ResponseEntity.ok().build();
     }
 
@@ -181,9 +169,7 @@ public class StudySettingsController {
             return ResponseEntity.badRequest().build();
         }
 
-        Study study = studyService.getStudyToUpdateZone(account, path);
-        studyService.removeZone(study, zoneOptional.get());
-
+        studyService.removeZone(path, account, zoneOptional.get());
         return ResponseEntity.ok().build();
     }
 
@@ -199,8 +185,7 @@ public class StudySettingsController {
 
     @PostMapping("/study/publish")
     public String publishStudy(@CurrentUser Account account, @PathVariable("path") String path, RedirectAttributes redirectAttributes) {
-        Study study = studyService.getStudyToUpdate(path, account);
-        studyService.publish(study);
+        studyService.publish(path, account);
 
         redirectAttributes.addFlashAttribute("message", "스터디를 공개했습니다.");
         return String.format("redirect:/study/%s/settings/study", URLEncoder.encode(path, UTF_8));
@@ -208,8 +193,7 @@ public class StudySettingsController {
 
     @PostMapping("/study/close")
     public String closeStudy(@CurrentUser Account account, @PathVariable("path") String path, RedirectAttributes redirectAttributes) {
-        Study study = studyService.getStudyToUpdate(path, account);
-        studyService.close(study);
+        studyService.close(path, account);
 
         redirectAttributes.addFlashAttribute("message", "스터디를 공개했습니다.");
         return String.format("redirect:/study/%s/settings/study", URLEncoder.encode(path, UTF_8));
@@ -226,8 +210,7 @@ public class StudySettingsController {
             return "study/settings/study";
         }
 
-        Study study = studyService.getStudyToUpdate(path, account);
-        studyService.updateStudyPath(study, studyPathForm.getNewPath());
+        studyService.updateStudyPath(path, account, studyPathForm.getNewPath());
 
         redirectAttributes.addFlashAttribute("message", "스터디 경로를 수정했습니다.");
         return String.format("redirect:/study/%s/settings/study", URLEncoder.encode(studyPathForm.getNewPath(), UTF_8));
@@ -243,8 +226,7 @@ public class StudySettingsController {
 
             return "study/settings/study";
         }
-        Study study = studyService.getStudyToUpdate(path, account);
-        studyService.updateStudyTitle(study, studyTitleForm.getNewTitle());
+        studyService.updateStudyTitle(path, account, studyTitleForm.getNewTitle());
 
         redirectAttributes.addFlashAttribute("message", "스터디 이름을 수정했습니다.");
         return String.format("redirect:/study/%s/settings/study", URLEncoder.encode(path, UTF_8));
@@ -252,8 +234,7 @@ public class StudySettingsController {
 
     @PostMapping("/study/remove")
     public String removeStudy(@CurrentUser Account account, @PathVariable("path") String path) {
-        Study study = studyService.getStudyToUpdate(path, account);
-        studyService.remove(study);
+        studyService.remove(path, account);
         return "redirect:/";
     }
 

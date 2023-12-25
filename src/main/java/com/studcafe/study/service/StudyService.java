@@ -22,9 +22,9 @@ public class StudyService {
         studyRepository.save(study);
     }
 
-    public void updateStudyDescription(Long id, Study study) {
-        Study findStudy = studyRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스터디 입니다."));
-        findStudy.updateDescription(study);
+    public void updateStudyDescription(String path, Study sourceStudy, Account account) {
+        Study study = getStudyToUpdate(path, account);
+        study.updateDescription(sourceStudy);
     }
 
     public Study getStudyToUpdate(String path, Account account) {
@@ -42,14 +42,14 @@ public class StudyService {
         return study;
     }
 
-    public void updateUseBanner(Long id, boolean useBanner) {
-        Study findStudy = studyRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스터디 입니다."));
-        findStudy.updateUseBanner(useBanner);
+    public void updateUseBanner(String path, Account account, Boolean useBanner) {
+        Study study = getStudyToUpdate(path, account);
+        study.updateUseBanner(useBanner);
     }
 
-    public void updateBanner(Long id, String image) {
-        Study findStudy = studyRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스터디 입니다."));
-        findStudy.updateBanner(image);
+    public void updateBanner(String path, Account account, String image) {
+        Study study = getStudyToUpdate(path, account);
+        study.updateBanner(image);
     }
 
     public Study getStudyToUpdateTag(Account account, String path) {
@@ -59,11 +59,13 @@ public class StudyService {
         return study;
     }
 
-    public void addTag(Study study, Tag tag) {
+    public void addTag(String path, Account account, Tag tag) {
+        Study study = getStudyToUpdateTag(account, path);
         study.getTags().add(tag);
     }
 
-    public void removeTag(Study study, Tag tag) {
+    public void removeTag(String path, Account account, Tag tag) {
+        Study study = getStudyToUpdateTag(account, path);
         study.getTags().remove(tag);
     }
 
@@ -80,31 +82,38 @@ public class StudyService {
         }
     }
 
-    public void addZone(Study study, Zone zone) {
+    public void addZone(String path, Account account, Zone zone) {
+        Study study = getStudyToUpdateZone(account, path);
         study.getZones().add(zone);
     }
 
-    public void removeZone(Study study, Zone zone) {
+    public void removeZone(String path, Account account, Zone zone) {
+        Study study = getStudyToUpdateZone(account, path);
         study.getZones().remove(zone);
     }
 
-    public void publish(Study study) {
+    public void publish(String path, Account account) {
+        Study study = getStudyToUpdate(path, account);
         study.publish();
     }
 
-    public void close(Study study) {
+    public void close(String path, Account account) {
+        Study study = getStudyToUpdate(path, account);
         study.close();
     }
 
-    public void updateStudyTitle(Study study, String title) {
+    public void updateStudyTitle(String path, Account account, String title) {
+        Study study = getStudyToUpdate(path, account);
         study.updateStudyTitle(title);
     }
 
-    public void updateStudyPath(Study study, String path) {
-        study.updateStudyPath(path);
+    public void updateStudyPath(String path, Account account, String newPath) {
+        Study study = getStudyToUpdate(path, account);
+        study.updateStudyPath(newPath);
     }
 
-    public void remove(Study study) {
+    public void remove(String path, Account account) {
+        Study study = getStudyToUpdate(path, account);
         if (study.isRemovable()) {
             studyRepository.delete(study);
         } else {
