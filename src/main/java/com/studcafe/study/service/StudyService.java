@@ -134,4 +134,14 @@ public class StudyService {
     public Study getStudyToUpdateMember(String path) {
         return studyRepository.getStudyToUpdateMember(path).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스터디 입니다."));
     }
+
+    public void startRecruit(String path, Account account) {
+        Study study = getStudyToUpdate(path, account);
+        study.startRecruit();
+    }
+
+    public void stopRecruit(String path, Account account) {
+        Study study = getStudyToUpdate(path, account);
+        study.stopRecruit();
+    }
 }

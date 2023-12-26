@@ -3,6 +3,8 @@ package com.studcafe.study.web;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.studcafe.account.domain.Account;
 import com.studcafe.account.repository.AccountRepository;
+import com.studcafe.account.service.AccountService;
+import com.studcafe.account.web.dto.SignUpForm;
 import com.studcafe.account.web.dto.TagForm;
 import com.studcafe.account.web.dto.ZoneForm;
 import com.studcafe.security.annotation.WithAccount;
@@ -19,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,6 +42,8 @@ class StudySettingsControllerTest {
     @Autowired private ObjectMapper objectMapper;
     @Autowired private TagService tagService;
     @Autowired private ZoneRepository zoneRepository;
+    @Autowired private AccountService accountService;
+    @Autowired private PasswordEncoder passwordEncoder;
 
     @AfterEach
     void afterEach() {
@@ -311,6 +316,42 @@ class StudySettingsControllerTest {
 
         Study findStudy = studyRepository.findById(study.getId()).get();
         assertEquals("new Title", findStudy.getTitle());
+    }
+
+    @Test
+    @DisplayName("스터디 팀원 모집 시작")
+    @WithAccount("nick")
+    void study_recruit_start() throws Exception {
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = createStudy();
+        studyService.publish(study.getPath(), account);
+
+        mockMvc.perform(post("/study/" + study.getPath() + "/settings/recruit/start")
+                .with(csrf())
+        )
+                .andExpect(redirectedUrl("/study/" + study.getPath() + "/settings/study"))
+                .andExpect(flash().attributeExists("message"));
+
+        Study findStudy = studyRepository.findById(study.getId()).get();
+        assertTrue(findStudy.isRecruiting());
+    }
+
+    @Test
+    @DisplayName("스터디 팀원 모집 종료")
+    @WithAccount("nick")
+    void study_recruit_stop() throws Exception {
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = createStudy();
+        studyService.publish(study.getPath(), account);
+
+        mockMvc.perform(post("/study/" + study.getPath() + "/settings/recruit/stop")
+                        .with(csrf())
+                )
+                .andExpect(redirectedUrl("/study/" + study.getPath() + "/settings/study"))
+                .andExpect(flash().attributeExists("message"));
+
+        Study findStudy = studyRepository.findById(study.getId()).get();
+        assertFalse(findStudy.isRecruiting());
     }
 
     private Study createStudy() {

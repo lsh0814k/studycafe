@@ -134,4 +134,26 @@ public class Study {
     public void addMember(Account account) {
         this.members.add(StudyMember.builder().study(this).account(account).build());
     }
+
+    public boolean canUpdateRecruiting() {
+        return this.published;
+    }
+
+    public void startRecruit() {
+        if (canUpdateRecruiting()) {
+         this.recruiting = true;
+         this.recruitingUpdatedDateTime = LocalDateTime.now();
+        } else {
+            throw new RuntimeException("인원 모집을 시작할 수 없습니다. 먼저 스터디를 공개해주세요.");
+        }
+    }
+
+    public void stopRecruit() {
+        if (canUpdateRecruiting()) {
+            this.recruiting = false;
+            this.recruitingUpdatedDateTime = LocalDateTime.now();
+        } else {
+            throw new RuntimeException("인원 모집을 시작할 수 없습니다. 먼저 스터디를 공개해주세요.");
+        }
+    }
 }

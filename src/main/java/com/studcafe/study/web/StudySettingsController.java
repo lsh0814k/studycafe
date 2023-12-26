@@ -238,4 +238,19 @@ public class StudySettingsController {
         return "redirect:/";
     }
 
+    @PostMapping("/recruit/start")
+    public String startRecruit(@CurrentUser Account account, @PathVariable("path") String path, RedirectAttributes redirectAttributes) {
+        studyService.startRecruit(path, account);
+
+        redirectAttributes.addFlashAttribute("message", "인원 모집을 시작합니다.");
+        return String.format("redirect:/study/%s/settings/study", URLEncoder.encode(path, UTF_8));
+    }
+
+    @PostMapping("/recruit/stop")
+    public String stopRecruit(@CurrentUser Account account, @PathVariable("path") String path, RedirectAttributes redirectAttributes) {
+        studyService.stopRecruit(path, account);
+
+        redirectAttributes.addFlashAttribute("message", "인원 모집을 종료합니다.");
+        return String.format("redirect:/study/%s/settings/study", URLEncoder.encode(path, UTF_8));
+    }
 }
