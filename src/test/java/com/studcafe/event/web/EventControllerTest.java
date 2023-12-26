@@ -89,6 +89,22 @@ class EventControllerTest {
                 .andExpect(model().attributeExists("event"));
     }
 
+    @Test
+    @DisplayName("모임 목록 조회")
+    @WithAccount("nick")
+    void event_query() throws Exception {
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = createStudy(account);
+        Event event = createEvent(account, study);
+
+        mockMvc.perform(get("/study/" + study.getPath() + "/events"))
+                .andExpect(view().name("study/events"))
+                .andExpect(model().attributeExists("account"))
+                .andExpect(model().attributeExists("study"))
+                .andExpect(model().attributeExists("oldEvents"))
+                .andExpect(model().attributeExists("newEvents"));
+    }
+
     private Event createEvent(Account account, Study study) {
         Event event = Event.builder()
                 .title("모임")
