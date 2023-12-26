@@ -4,6 +4,7 @@ import com.studcafe.account.domain.Account;
 import com.studcafe.study.domain.Study;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ public class Event {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "account_id")
-    private Account createBy;
+    private Account createdBy;
 
     @Column(nullable = false)
     private String title;
@@ -56,4 +57,47 @@ public class Event {
 
     @Enumerated(value = STRING)
     private EventType eventType;
+
+    public boolean isEnrollableFor(Account account) {
+        return isNotClosed() && !isAlreadyEnrolled(account);
+    }
+
+    public boolean isDisenrollableFor(Account account) {
+        return isNotClosed() && isAlreadyEnrolled(account);
+    }
+
+    public boolean isAttended(Account account) {
+        return enrollments.stream()
+                .filter(e -> e.equals(account) && e.isAttended())
+                .count() > 0;
+    }
+
+    public boolean canAccept(Enrollment enrollment) {
+        return this.eventType == EventType.CONFIRMATIVE
+                && this.enrollments.contains(enrollment)
+                && this.limitOfEnrollments > this.getNumberOfAcceptedEnrollments()
+                && !enrollment.isAttended()
+                && !enrollment.isAccepted();
+    }
+
+    public boolean canReject(Enrollment enrollment) {
+        return this.eventType == EventType.CONFIRMATIVE
+                && this.enrollments.contains(enrollment)
+                && !enrollment.isAttended()
+                && enrollment.isAccepted();
+    }
+
+    public long getNumberOfAcceptedEnrollments() {
+        return this.enrollments.stream().filter(Enrollment::isAccepted).count();
+    }
+
+    private boolean isNotClosed() {
+        return this.endEnrollmentDateTime.isAfter(LocalDateTime.now());
+    }
+
+    private boolean isAlreadyEnrolled(Account account) {
+        return enrollments.stream()
+                .filter(e -> e.equals(account))
+                .count() > 1;
+    }
 }

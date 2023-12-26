@@ -43,4 +43,10 @@ public interface StudyRepository extends JpaRepository<Study, Long> {
             "left join fetch m.account " +
             "where s.path = :path")
     Optional<Study> getStudyToUpdateMember(@Param("path") String path);
+
+    @Query(value = "select s from Study s " +
+            "left join fetch s.managers m " +
+            "left join fetch m.account " +
+            "where s.path = :path")
+    Optional<Study> findStudyWithManagerByPath(@Param("path") String path);
 }
