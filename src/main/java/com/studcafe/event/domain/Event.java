@@ -70,7 +70,7 @@ public class Event {
 
     public boolean isAttended(Account account) {
         return enrollments.stream()
-                .filter(e -> e.equals(account) && e.isAttended())
+                .filter(e -> e.getAccount().equals(account) && e.isAttended())
                 .count() > 0;
     }
 
@@ -99,8 +99,8 @@ public class Event {
 
     private boolean isAlreadyEnrolled(Account account) {
         return enrollments.stream()
-                .filter(e -> e.equals(account))
-                .count() > 1;
+                .filter(e -> e.getAccount().equals(account))
+                .findAny().isPresent();
     }
 
     public void updateEvent(Event event) {
