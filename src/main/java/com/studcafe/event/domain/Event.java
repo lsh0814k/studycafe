@@ -4,12 +4,13 @@ import com.studcafe.account.domain.Account;
 import com.studcafe.study.domain.Study;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import static jakarta.persistence.CascadeType.*;
 import static jakarta.persistence.EnumType.*;
 import static jakarta.persistence.FetchType.*;
 import static lombok.AccessLevel.*;
@@ -52,7 +53,8 @@ public class Event {
     private Integer limitOfEnrollments;
 
     @Builder.Default
-    @OneToMany(mappedBy = "event")
+    @OneToMany(mappedBy = "event", orphanRemoval = true, cascade = ALL)
+    @OrderBy(value = "enrolledAt desc")
     private List<Enrollment> enrollments = new ArrayList();
 
     @Enumerated(value = STRING)
@@ -108,5 +110,84 @@ public class Event {
         this.startDateTime = event.getStartDateTime();
         this.endDateTime = event.getEndDateTime();
         this.limitOfEnrollments = event.getLimitOfEnrollments();
+    }
+
+    public void acceptNextWaitingEnrollments() {
+        if (!isAbleToAcceptWaitingEnrollment()) {
+            return;
+        }
+
+        long acceptEnrollmentCount = getNumberOfAcceptedEnrollments();
+        List<Enrollment> enrollmentList = waitingList();
+        int numberToAccept = (int) Math.min(limitOfEnrollments - acceptEnrollmentCount, waitingList().size());
+        enrollmentList.subList(0, numberToAccept).forEach(e -> e.changeAccepted(true));
+    }
+
+    private List<Enrollment> waitingList() {
+        return enrollments.stream()
+                .filter(e -> !e.isAccepted())
+                .toList();
+    }
+
+    public void addEnrollment(Account account) {
+        existEnrollmentThrowsException(account);
+
+        Enrollment enrollment = Enrollment.builder()
+                .event(this)
+                .enrolledAt(LocalDateTime.now())
+                .account(account)
+                .attended(false)
+                .accepted(isAbleToAcceptWaitingEnrollment())
+                .build();
+
+        this.enrollments.add(enrollment);
+    }
+
+    public void removeEnrollment(Account account) {
+        enrollments.remove(findEnrollment(account));
+
+        acceptNextWaitingEnrollment();
+    }
+
+    private void acceptNextWaitingEnrollment() {
+        if (!isAbleToAcceptWaitingEnrollment()) {
+            return;
+        }
+
+        Optional<Enrollment> enrollmentOptional = getTheFirstWaitingEnrollment();
+        if (enrollmentOptional.isEmpty()){
+            return;
+        }
+
+        enrollmentOptional.get().changeAccepted(true);
+    }
+
+    private Optional<Enrollment> getTheFirstWaitingEnrollment() {
+        if (enrollments.isEmpty()) {
+            Optional.empty();
+        }
+
+        return enrollments.stream().filter(e -> !e.isAccepted()).findFirst();
+    }
+
+    private Enrollment findEnrollment(Account account) {
+        return enrollments.stream()
+                .filter(e -> e.getAccount().equals(account))
+                .findAny()
+                .orElseThrow(() -> new IllegalStateException("모임에 참가자 명단에 없습니다."));
+    }
+
+    private void existEnrollmentThrowsException(Account account) {
+        Optional<Enrollment> any = enrollments.stream()
+                .filter(e -> e.getAccount().equals(account))
+                .findAny();
+
+        if (any.isPresent()) {
+            throw new IllegalStateException("이미 모입에 참여하고 있습니다.");
+        }
+    }
+
+    private boolean isAbleToAcceptWaitingEnrollment() {
+        return this.eventType == EventType.FCFS && this.limitOfEnrollments > this.getNumberOfAcceptedEnrollments();
     }
 }

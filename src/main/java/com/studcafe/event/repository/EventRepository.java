@@ -14,7 +14,8 @@ import java.util.Optional;
 public interface EventRepository extends JpaRepository<Event, Long> {
     @Query(value = "select e from Event e " +
             "left join fetch e.createdBy " +
-            "left join fetch e.enrollments " +
+            "left join fetch e.enrollments en " +
+            "left join fetch en.account " +
             "where e.id = :id")
     Optional<Event> findWithEnrollmentById(@Param("id") Long id);
 

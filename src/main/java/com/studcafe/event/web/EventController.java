@@ -19,7 +19,6 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
@@ -151,4 +150,19 @@ public class EventController {
         return String.format("redirect:/study/%s/events", URLEncoder.encode(path, UTF_8));
     }
 
+    @PostMapping("/events/{id}/enroll")
+    public String newEnrollment(@CurrentUser Account account, @PathVariable("path") String path, @PathVariable("id") Long id) {
+        studyRepository.findByPath(path).orElseThrow(() -> new IllegalStateException("존재하지 않는 스터디 입니다."));
+
+        eventService.newEnrollment(account, id);
+        return String.format("redirect:/study/%s/events/%s", URLEncoder.encode(path, UTF_8), id);
+    }
+
+    @PostMapping("/events/{id}/disenroll")
+    public String cancelEnrollment(@CurrentUser Account account, @PathVariable("path") String path, @PathVariable("id") Long id) {
+        studyRepository.findByPath(path).orElseThrow(() -> new IllegalStateException("존재하지 않는 스터디 입니다."));
+
+        eventService.cancelEnrollment(account, id);
+        return String.format("redirect:/study/%s/events/%s", URLEncoder.encode(path, UTF_8), id);
+    }
 }

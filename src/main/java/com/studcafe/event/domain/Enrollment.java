@@ -33,4 +33,8 @@ public class Enrollment {
 
     @Column(nullable = false)
     private boolean attended;
+
+    public void changeAccepted(boolean accepted) {
+        this.accepted = accepted;
+    }
 }
