@@ -16,14 +16,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Set;
 
 @Service
-@Transactional(readOnly = true)
+@Transactional
 @RequiredArgsConstructor
 public class AccountService {
     private final AccountRepository accountRepository;
     private final JavaMailSender javaMailSender;
     private final TagService tagService;
 
-    @Transactional
     public void processNewAccount(Account account) {
         account.generateEmailCheckToken();
         saveNewAccount(account);
@@ -42,7 +41,6 @@ public class AccountService {
         javaMailSender.send(simpleMailMessage);
     }
 
-    @Transactional
     public void verifyEmail(String email, String token) {
         Account account = accountRepository.findByEmail(email).orElseThrow(UnMatchedTokenException::new);
         if (!account.isValidToken(token)) {
@@ -52,61 +50,55 @@ public class AccountService {
         account.completeSignUp();
     }
 
-    @Transactional
     public void sendConfirmEmail(Account account) {
         account.generateEmailCheckToken();
         sendSignUpConfirmEmail(account);
     }
 
-    @Transactional
     public void updateProfile(String email, Account updatedAccount) {
         Account findAccount = accountRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
         findAccount.updateProfile(updatedAccount);
     }
 
-    @Transactional
     public void updatePassword(String email, Account account) {
         Account findAccount = accountRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
         findAccount.updatePassword(account);
     }
 
-    @Transactional
     public void updateNotifications(String email, Account account) {
         Account findAccount = accountRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
         findAccount.updateNotifications(account);
     }
 
-    @Transactional
     public void addTag(String email, String title) {
         Tag tag = tagService.findOrCreateNew(title);
         Account findAccount = accountRepository.findWithTagsByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
         findAccount.addTags(tag);
     }
 
+    @Transactional(readOnly = true)
     public Set<Tag> getTags(String email) {
         Account findAccount = accountRepository.findWithTagsByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
         return findAccount.getTags();
     }
 
-    @Transactional
     public void removeTag(String email, Tag tag) {
         Account findAccount = accountRepository.findWithTagsByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
 
         findAccount.getTags().remove(tag);
     }
 
-    @Transactional
     public void addZone(String email, Zone zone) {
         Account findAccount = accountRepository.findWithTagsByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
         findAccount.getZones().add(zone);
     }
 
+    @Transactional(readOnly = true)
     public Set<Zone> getZones(String email) {
         Account findAccount = accountRepository.findWithZonesByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
         return findAccount.getZones();
     }
 
-    @Transactional
     public void removeZone(String email, Zone zone) {
         Account findAccount = accountRepository.findWithZonesByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
         findAccount.getZones().remove(zone);
