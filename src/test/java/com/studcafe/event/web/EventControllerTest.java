@@ -11,6 +11,7 @@ import com.studcafe.study.domain.Study;
 import com.studcafe.study.repository.StudyRepository;
 import com.studcafe.study.service.StudyService;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -141,6 +143,26 @@ class EventControllerTest {
         )
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl(String.format("/study/%s/events/%s", study.getPath(), event.getId())));
+
+        Event findEvent = eventRepository.findById(event.getId()).get();
+        assertEquals(3, findEvent.getLimitOfEnrollments());
+    }
+
+    @Test
+    @DisplayName("모임 취소")
+    @WithAccount("nick")
+    void event_cancel() throws Exception {
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = createStudy(account);
+        Event event = createEvent(account, study);
+
+        mockMvc.perform(post("/study/" + study.getPath() + "/events/" + event.getId() + "/delete")
+                .with(csrf())
+        )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(String.format("/study/%s/events", study.getPath())));
+
+        assertTrue(eventRepository.findById(event.getId()).isEmpty());
     }
 
     private Event createEvent(Account account, Study study) {

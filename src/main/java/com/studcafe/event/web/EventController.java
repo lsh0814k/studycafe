@@ -142,4 +142,13 @@ public class EventController {
         eventService.updateEvent(id, eventEditForm.createEvent());
         return String.format("redirect:/study/%s/events/%s", URLEncoder.encode(path, UTF_8), event.getId());
     }
+
+    @PostMapping("/events/{id}/delete")
+    public String cancelEvent(@CurrentUser Account account, @PathVariable("path") String path, @PathVariable("id") Long id) {
+        Study study = studyService.getStudyToUpdate(path, account);
+        eventService.cancelEvent(id);
+
+        return String.format("redirect:/study/%s/events", URLEncoder.encode(path, UTF_8));
+    }
+
 }
