@@ -5,6 +5,7 @@ import com.studcafe.event.domain.Event;
 import com.studcafe.event.repository.EventRepository;
 import com.studcafe.event.service.EventService;
 import com.studcafe.event.web.dto.*;
+import com.studcafe.event.web.validator.EventEditFormValidator;
 import com.studcafe.event.web.validator.EventFormValidator;
 import com.studcafe.main.annotation.CurrentUser;
 import com.studcafe.study.domain.Study;
@@ -36,10 +37,16 @@ public class EventController {
     private final EventService eventService;
     private final StudyRepository studyRepository;
     private final EventRepository eventRepository;
+    private final EventEditFormValidator eventEditFormValidator;
 
     @InitBinder("eventForm")
     public void initBinderEventForm(WebDataBinder webDataBinder) {
         webDataBinder.addValidators(new EventFormValidator());
+    }
+
+    @InitBinder("eventEditForm")
+    public void initBinderEventEditForm(WebDataBinder webDataBinder) {
+        webDataBinder.addValidators(eventEditFormValidator);
     }
 
     @GetMapping("/new-event")
@@ -99,5 +106,40 @@ public class EventController {
         model.addAttribute("oldEvents", oldEvents.stream().map(EventEventsForm::create).toList());
 
         return "study/events";
+    }
+
+    @GetMapping("/events/{id}/edit")
+    public String updateEventForm(@CurrentUser Account account, Model model,
+                                  @PathVariable("path") String path, @PathVariable("id") Long id) {
+        Study study = studyService.getStudyToUpdate(path, account);
+        Event event = eventRepository.findById(id).orElseThrow(() -> new IllegalStateException("존재하지 않는 모임 입니다."));
+        model.addAttribute(account);
+        model.addAttribute("event", EventEventEditForm.builder()
+                        .id(event.getId())
+                        .title(event.getTitle())
+                        .build());
+        model.addAttribute("study", EventStudyInfo.create(study));
+        model.addAttribute("eventEditForm", EventEditForm.create(event));
+
+        return "event/update-form";
+    }
+
+    @PostMapping("/events/{id}/edit")
+    public String updateEvent(@CurrentUser Account account, @PathVariable("path") String path, @PathVariable("id") Long id, Model model,
+                              @ModelAttribute("eventEditForm") @Valid EventEditForm eventEditForm, BindingResult bindingResult) {
+        Event event = eventRepository.findById(id).orElseThrow(() -> new IllegalStateException("존재하지 않는 모임 입니다."));
+        if (bindingResult.hasErrors()) {
+            Study study = studyService.getStudyToUpdate(path, account);
+            model.addAttribute(account);
+            model.addAttribute("event", EventEventEditForm.builder()
+                    .id(event.getId())
+                    .title(event.getTitle())
+                    .build());
+            model.addAttribute("study", EventStudyInfo.create(study));
+            return "event/update-form";
+        }
+
+        eventService.updateEvent(id, eventEditForm.createEvent());
+        return String.format("redirect:/study/%s/events/%s", URLEncoder.encode(path, UTF_8), event.getId());
     }
 }

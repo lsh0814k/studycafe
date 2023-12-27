@@ -100,4 +100,13 @@ public class Event {
                 .filter(e -> e.equals(account))
                 .count() > 1;
     }
+
+    public void updateEvent(Event event) {
+        this.title = event.getTitle();
+        this.description = event.getDescription();
+        this.endEnrollmentDateTime = event.getEndEnrollmentDateTime();
+        this.startDateTime = event.getStartDateTime();
+        this.endDateTime = event.getEndDateTime();
+        this.limitOfEnrollments = event.getLimitOfEnrollments();
+    }
 }

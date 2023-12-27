@@ -34,7 +34,7 @@ public class EventFormValidator implements Validator {
     }
 
     private boolean isNotValidEndEnrollmentDateTime(EventForm eventForm) {
-        return eventForm.getEndEnrollmentDateTime().isBefore(LocalDateTime.now());
+        return !eventForm.getEndEnrollmentDateTime().isBefore(LocalDateTime.now());
     }
 
     private boolean isNotValidEndDateTime(EventForm eventForm) {

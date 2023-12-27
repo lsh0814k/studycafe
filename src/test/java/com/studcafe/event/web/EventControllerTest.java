@@ -71,7 +71,7 @@ class EventControllerTest {
                         .param("limitOfEnrollments", String.valueOf(2))
                 .with(csrf())
         )
-                .andExpect(status().isOk());
+                .andExpect(status().is3xxRedirection());
     }
 
     @Test
@@ -103,6 +103,44 @@ class EventControllerTest {
                 .andExpect(model().attributeExists("study"))
                 .andExpect(model().attributeExists("oldEvents"))
                 .andExpect(model().attributeExists("newEvents"));
+    }
+
+    @Test
+    @DisplayName("모임 수정 폼")
+    @WithAccount("nick")
+    void event_edit_form() throws Exception {
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = createStudy(account);
+        Event event = createEvent(account, study);
+
+        mockMvc.perform(get("/study/" + study.getPath() + "/events/" + event.getId() + "/edit"))
+                .andExpect(view().name("event/update-form"))
+                .andExpect(model().attributeExists("account"))
+                .andExpect(model().attributeExists("study"))
+                .andExpect(model().attributeExists("eventEditForm"));
+    }
+
+    @Test
+    @DisplayName("모임 수정")
+    @WithAccount("nick")
+    void event_edit() throws Exception {
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = createStudy(account);
+        Event event = createEvent(account, study);
+
+        mockMvc.perform(post("/study/" + study.getPath() + "/events/" + event.getId() + "/edit")
+                .with(csrf())
+                .param("id", event.getId().toString())
+                .param("title", "title")
+                .param("description", "description")
+                .param("eventType", EventType.FCFS.toString())
+                .param("endEnrollmentDateTime", LocalDateTime.now().minusHours(1).toString())
+                .param("startDateTime", LocalDateTime.now().toString())
+                .param("endDateTime", LocalDateTime.now().plusDays(2).toString())
+                .param("limitOfEnrollments", String.valueOf(3))
+        )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(String.format("/study/%s/events/%s", study.getPath(), event.getId())));
     }
 
     private Event createEvent(Account account, Study study) {
