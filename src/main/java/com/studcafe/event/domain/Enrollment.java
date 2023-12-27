@@ -37,4 +37,8 @@ public class Enrollment {
     public void changeAccepted(boolean accepted) {
         this.accepted = accepted;
     }
+
+    public void changeAttended(boolean attended) {
+        this.attended = attended;
+    }
 }

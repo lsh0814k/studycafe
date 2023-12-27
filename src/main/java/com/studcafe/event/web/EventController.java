@@ -165,4 +165,42 @@ public class EventController {
         eventService.cancelEnrollment(account, id);
         return String.format("redirect:/study/%s/events/%s", URLEncoder.encode(path, UTF_8), id);
     }
+
+    @PostMapping("/events/{eventId}/enrollments/{enrollmentId}/accept")
+    public String acceptEnrollment(@CurrentUser Account account, @PathVariable("path") String path,
+                                   @PathVariable("eventId") Long eventId, @PathVariable("enrollmentId") Long enrollmentId) {
+        studyRepository.findByPath(path).orElseThrow(() -> new IllegalStateException("존재하지 않는 스터디 입니다."));
+        eventService.acceptEnrollment(eventId, enrollmentId, account);
+
+        return String.format("redirect:/study/%s/events/%s", URLEncoder.encode(path, UTF_8), eventId);
+    }
+
+    @PostMapping("/events/{eventId}/enrollments/{enrollmentId}/reject")
+    public String rejectEnrollment(@CurrentUser Account account, @PathVariable("path") String path,
+                                   @PathVariable("eventId") Long eventId, @PathVariable("enrollmentId") Long enrollmentId) {
+        studyRepository.findByPath(path).orElseThrow(() -> new IllegalStateException("존재하지 않는 스터디 입니다."));
+
+        eventService.rejectEnrollment(eventId, enrollmentId, account);
+
+        return String.format("redirect:/study/%s/events/%s", URLEncoder.encode(path, UTF_8), eventId);
+    }
+
+    @PostMapping("/events/{eventId}/enrollments/{enrollmentId}/checkIn")
+    public String checkInEnrollment(@CurrentUser Account account, @PathVariable("path") String path,
+                                    @PathVariable("eventId") Long eventId, @PathVariable("enrollmentId") Long enrollmentId) {
+        studyRepository.findByPath(path).orElseThrow(() -> new IllegalStateException("존재하지 않는 스터디 입니다."));
+        eventService.checkInEnrollment(eventId, enrollmentId, account);
+        return String.format("redirect:/study/%s/events/%s", URLEncoder.encode(path, UTF_8), eventId);
+    }
+
+    @PostMapping("/events/{eventId}/enrollments/{enrollmentId}/cancel-checkIn")
+    public String cancelCheckInEnrollment(@CurrentUser Account account, @PathVariable("path") String path,
+                                    @PathVariable("eventId") Long eventId, @PathVariable("enrollmentId") Long enrollmentId) {
+        studyRepository.findByPath(path).orElseThrow(() -> new IllegalStateException("존재하지 않는 스터디 입니다."));
+        eventService.cancelCheckInEnrollment(eventId, enrollmentId, account);
+        return String.format("redirect:/study/%s/events/%s", URLEncoder.encode(path, UTF_8), eventId);
+    }
+
 }
+
+

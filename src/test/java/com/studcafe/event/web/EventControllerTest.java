@@ -14,7 +14,6 @@ import com.studcafe.study.domain.Study;
 import com.studcafe.study.repository.StudyRepository;
 import com.studcafe.study.service.StudyService;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -271,6 +270,101 @@ class EventControllerTest {
         isEnrollNotAccepted(findEvent, accountRepository.findByNickname("nick").get());
     }
 
+    @Test
+    @DisplayName("관리자 확인 모임에 참가 신청 수락")
+    @WithAccount("nick")
+    void enrollment_to_CONFIRMATIVE_accepted() throws Exception {
+        Account account = createAccount("name");
+        Study study = createStudy(account);
+        Event event = createEvent(account, study, EventType.CONFIRMATIVE, 2);
+        eventService.newEnrollment(account, event.getId());
+        Enrollment enrollment = eventRepository.findWithEnrollmentById(event.getId()).get().getEnrollments().get(0);
+
+        mockMvc.perform(post("/study/" + study.getPath() + "/events/" + event.getId() + "/enrollments/" + enrollment.getId() + "/accept")
+                .with(csrf())
+        )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(String.format("/study/%s/events/%s", URLEncoder.encode(study.getPath(), UTF_8), event.getId())));
+
+        Event findEvent = eventRepository.findWithEnrollmentById(event.getId()).get();
+        isEnrollAccepted(findEvent, account);
+    }
+
+    @Test
+    @DisplayName("관리자 확인 모임에 참가 신청 거절")
+    @WithAccount("nick")
+    void enrollment_to_CONFIRMATIVE_reject() throws Exception {
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = createStudy(account);
+        Event event = createEvent(account, study, EventType.CONFIRMATIVE, 2);
+        eventService.newEnrollment(account, event.getId());
+        Enrollment enrollment = eventRepository.findWithEnrollmentById(event.getId()).get().getEnrollments().get(0);
+
+        mockMvc.perform(post("/study/" + study.getPath() + "/events/" + event.getId() + "/enrollments/" + enrollment.getId() + "/reject")
+                        .with(csrf())
+                )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(String.format("/study/%s/events/%s", URLEncoder.encode(study.getPath(), UTF_8), event.getId())));
+
+        Event findEvent = eventRepository.findWithEnrollmentById(event.getId()).get();
+        isEnrollNotAccepted(findEvent, account);
+    }
+
+    @Test
+    @DisplayName("모임 체크인")
+    @WithAccount("nick")
+    void enrollment_checkIn() throws Exception {
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = createStudy(account);
+        Event event = createEvent(account, study, EventType.FCFS, 2);
+        eventService.newEnrollment(account, event.getId());
+        Enrollment enrollment = eventRepository.findWithEnrollmentById(event.getId()).get().getEnrollments().get(0);
+
+        mockMvc.perform(post("/study/" + study.getPath() + "/events/" + event.getId() + "/enrollments/" + enrollment.getId() + "/checkIn")
+                        .with(csrf())
+                )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(String.format("/study/%s/events/%s", URLEncoder.encode(study.getPath(), UTF_8), event.getId())));
+
+        isEnrollCheckIn(account, event);
+    }
+
+    private void isEnrollCheckIn(Account account, Event event) {
+        Event findEvent = eventRepository.findWithEnrollmentById(event.getId()).get();
+        assertTrue(findEvent.getEnrollments().stream()
+                .filter(e -> e.getAccount().equals(account))
+                .findFirst()
+                .get()
+                .isAttended());
+    }
+
+    @Test
+    @DisplayName("모임 체크인 취소")
+    @WithAccount("nick")
+    void enrollment_cancel_checkIn() throws Exception {
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = createStudy(account);
+        Event event = createEvent(account, study, EventType.FCFS, 2);
+        eventService.newEnrollment(account, event.getId());
+        Enrollment enrollment = eventRepository.findWithEnrollmentById(event.getId()).get().getEnrollments().get(0);
+        eventService.checkInEnrollment(event.getId(), enrollment.getId(), account);
+        isEnrollCheckIn(account, event);
+
+
+        mockMvc.perform(post("/study/" + study.getPath() + "/events/" + event.getId() + "/enrollments/" + enrollment.getId() + "/cancel-checkIn")
+                        .with(csrf())
+                )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(String.format("/study/%s/events/%s", URLEncoder.encode(study.getPath(), UTF_8), event.getId())));
+
+        Event findEvent = eventRepository.findWithEnrollmentById(event.getId()).get();
+        assertFalse(findEvent.getEnrollments().stream()
+                .filter(e -> e.getAccount().equals(account))
+                .findFirst()
+                .get()
+                .isAttended());
+    }
+
     private void isEnrollAccepted(Event event, Account account) {
         assertTrue(event.getEnrollments().stream()
                 .filter(e -> e.getAccount().equals(account))
@@ -292,8 +386,8 @@ class EventControllerTest {
                 .title("모임")
                 .description("description")
                 .eventType(eventType)
-                .endEnrollmentDateTime(LocalDateTime.now())
-                .startDateTime(LocalDateTime.now())
+                .endEnrollmentDateTime(LocalDateTime.now().plusHours(1))
+                .startDateTime(LocalDateTime.now().plusHours(2))
                 .endDateTime(LocalDateTime.now().plusDays(2))
                 .createDateTime(LocalDateTime.now())
                 .study(study)

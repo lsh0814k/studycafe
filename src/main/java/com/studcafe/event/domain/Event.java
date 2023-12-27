@@ -61,11 +61,11 @@ public class Event {
     private EventType eventType;
 
     public boolean isEnrollableFor(Account account) {
-        return isNotClosed() && !isAlreadyEnrolled(account);
+        return isNotClosed() && !isAlreadyEnrolled(account) && !isAttended(account);
     }
 
     public boolean isDisenrollableFor(Account account) {
-        return isNotClosed() && isAlreadyEnrolled(account);
+        return isNotClosed() && isAlreadyEnrolled(account) && !isAttended(account);
     }
 
     public boolean isAttended(Account account) {
@@ -99,8 +99,7 @@ public class Event {
 
     private boolean isAlreadyEnrolled(Account account) {
         return enrollments.stream()
-                .filter(e -> e.getAccount().equals(account))
-                .findAny().isPresent();
+                .anyMatch(e -> e.getAccount().equals(account));
     }
 
     public void updateEvent(Event event) {
@@ -189,5 +188,46 @@ public class Event {
 
     private boolean isAbleToAcceptWaitingEnrollment() {
         return this.eventType == EventType.FCFS && this.limitOfEnrollments > this.getNumberOfAcceptedEnrollments();
+    }
+
+    public void acceptEnrollment(Long enrollmentId, Account account) {
+        if (!isEnrollableFor(account)) {
+            return;
+        }
+
+        Enrollment enrollment = findEnrollmentById(enrollmentId);
+        enrollment.changeAccepted(true);
+    }
+
+    public void rejectEnrollment(Long enrollmentId, Account account) {
+        if (!isDisenrollableFor(account)) {
+            return;
+        }
+
+        Enrollment enrollment = findEnrollmentById(enrollmentId);
+        enrollment.changeAccepted(false);
+    }
+
+    public void checkInEnrollment(Long enrollmentId, Account account) {
+        if (!isAlreadyEnrolled(account)) {
+            return;
+        }
+        Enrollment enrollment = findEnrollmentById(enrollmentId);
+        enrollment.changeAttended(true);
+    }
+
+    public void cancelCheckInEnrollment(Long enrollmentId, Account account) {
+        if (!isAlreadyEnrolled(account)) {
+            return;
+        }
+        Enrollment enrollment = findEnrollmentById(enrollmentId);
+        enrollment.changeAttended(false);
+    }
+
+    private Enrollment findEnrollmentById(Long id) {
+        return enrollments.stream()
+                .filter(e -> e.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("모임을 신청한 인원이 아닙니다."));
     }
 }
