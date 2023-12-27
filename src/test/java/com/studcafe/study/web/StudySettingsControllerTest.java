@@ -166,9 +166,8 @@ class StudySettingsControllerTest {
         Study study = createStudy();
         TagForm tagForm = new TagForm();
         tagForm.setTagTitle("Spring");
-        Tag tag = tagService.findOrCreateNew(tagForm.getTagTitle());
         Account account = accountRepository.findByNickname("nick").get();
-        studyService.addTag(study.getPath(), account, tag);
+        studyService.addTag(study.getPath(), account, tagForm.getTagTitle());
 
         mockMvc.perform(post("/study/" + study.getPath() + "/settings/tags/remove")
                         .with(csrf())

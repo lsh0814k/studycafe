@@ -40,7 +40,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class StudySettingsController {
     private final StudyService studyService;
     private final TagRepository tagRepository;
-    private final TagService tagService;
     private final ZoneRepository zoneRepository;
     private final ObjectMapper objectMapper;
     private final StudyPathFormValidator studyPathFormValidator;
@@ -120,8 +119,8 @@ public class StudySettingsController {
     @PostMapping("/tags/add")
     @ResponseBody
     public ResponseEntity addTag(@CurrentUser Account account, @PathVariable("path") String path, @RequestBody TagForm tagForm) {
-        Tag tag = tagService.findOrCreateNew(tagForm.getTagTitle());
-        studyService.addTag(path, account, tag);
+
+        studyService.addTag(path, account, tagForm.getTagTitle());
 
         return ResponseEntity.ok().build();
     }

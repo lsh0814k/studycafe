@@ -4,6 +4,7 @@ import com.studcafe.account.domain.Account;
 import com.studcafe.study.domain.Study;
 import com.studcafe.study.repository.StudyRepository;
 import com.studcafe.tag.domain.Tag;
+import com.studcafe.tag.service.TagService;
 import com.studcafe.zone.domain.Zone;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class StudyService {
 
     private final StudyRepository studyRepository;
+    private final TagService tagService;
 
     public void createNewStudy(Account account, Study study) {
         study.addManger(account);
@@ -59,7 +61,8 @@ public class StudyService {
         return study;
     }
 
-    public void addTag(String path, Account account, Tag tag) {
+    public void addTag(String path, Account account, String title) {
+        Tag tag = tagService.findOrCreateNew(title);
         Study study = getStudyToUpdateTag(account, path);
         study.getTags().add(tag);
     }
