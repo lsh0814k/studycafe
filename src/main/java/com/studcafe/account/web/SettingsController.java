@@ -52,7 +52,7 @@ public class SettingsController {
     private final ObjectMapper objectMapper;
     private final TagRepository tagRepository;
     private final ZoneRepository zoneRepository;
-    private final TagService tagService;
+
 
     @InitBinder("passwordForm")
     public void initBinder(WebDataBinder webDataBinder) {
@@ -110,8 +110,7 @@ public class SettingsController {
     @PostMapping(SETTINGS_TAGS_URL + "/add")
     @ResponseBody
     public ResponseEntity addTag(@CurrentUser Account account, @RequestBody TagForm tagForm) {
-        Tag tag = tagService.findOrCreateNew(tagForm.getTagTitle());
-        accountService.addTag(account.getEmail(), tag);
+        accountService.addTag(account.getEmail(), tagForm.getTagTitle());
         return ResponseEntity.ok().build();
     }
 

@@ -5,6 +5,7 @@ import com.studcafe.tag.domain.Tag;
 import com.studcafe.account.exception.UnMatchedTokenException;
 import com.studcafe.account.repository.AccountRepository;
 import com.studcafe.tag.repository.TagRepository;
+import com.studcafe.tag.service.TagService;
 import com.studcafe.zone.domain.Zone;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
@@ -20,7 +21,7 @@ import java.util.Set;
 public class AccountService {
     private final AccountRepository accountRepository;
     private final JavaMailSender javaMailSender;
-    private final TagRepository tagRepository;
+    private final TagService tagService;
 
     @Transactional
     public void processNewAccount(Account account) {
@@ -76,7 +77,8 @@ public class AccountService {
     }
 
     @Transactional
-    public void addTag(String email, Tag tag) {
+    public void addTag(String email, String title) {
+        Tag tag = tagService.findOrCreateNew(title);
         Account findAccount = accountRepository.findWithTagsByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일 입니다."));
         findAccount.addTags(tag);
     }
