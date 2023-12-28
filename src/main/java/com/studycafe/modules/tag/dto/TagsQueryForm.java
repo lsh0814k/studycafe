@@ -1,0 +1,10 @@
+package com.studycafe.modules.tag.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+
+@Getter @Builder @AllArgsConstructor
+public class TagsQueryForm {
+    private String title;
+}

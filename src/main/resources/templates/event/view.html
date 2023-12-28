@@ -144,8 +144,8 @@
 
                 <dt class="font-weight-light">모집 방법</dt>
                 <dd>
-                    <span th:if="${event.eventType.toString().equals(T(com.studcafe.event.domain.EventType).FCFS.toString())}">선착순</span>
-                    <span th:if="${event.eventType.toString().equals(T(com.studcafe.event.domain.EventType).CONFIRMATIVE.toString())}">관리자 확인</span>
+                    <span th:if="${event.eventType.toString().equals(T(com.studycafe.modules.event.domain.EventType).FCFS.toString())}">선착순</span>
+                    <span th:if="${event.eventType.toString().equals(T(com.studycafe.modules.event.domain.EventType).CONFIRMATIVE.toString())}">관리자 확인</span>
                 </dd>
 
                 <dt class="font-weight-light">모집 인원</dt>

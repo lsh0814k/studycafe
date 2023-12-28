@@ -39,6 +39,7 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'com.tngtech.archunit:archunit-junit5:1.0.1'
 }
 
 tasks.named('test') {
