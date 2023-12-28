@@ -1,10 +1,13 @@
 package com.studycafe.modules.study.web;
 
+import com.studycafe.infra.MockMvcTest;
+import com.studycafe.modules.account.AccountFactory;
 import com.studycafe.modules.account.annotation.WithAccount;
 import com.studycafe.modules.account.domain.Account;
 import com.studycafe.modules.account.repository.AccountRepository;
 import com.studycafe.modules.account.service.AccountService;
 import com.studycafe.modules.account.web.dto.SignUpForm;
+import com.studycafe.modules.study.StudyFactory;
 import com.studycafe.modules.study.domain.Study;
 import com.studycafe.modules.study.repository.StudyRepository;
 import com.studycafe.modules.study.service.StudyService;
@@ -12,8 +15,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -24,16 +25,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@MockMvcTest
 class StudyControllerTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private StudyService studyService;
     @Autowired private StudyRepository studyRepository;
     @Autowired private AccountRepository accountRepository;
-    @Autowired private AccountService accountService;
-    @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private AccountFactory accountFactory;
+    @Autowired private StudyFactory studyFactory;
 
     @AfterEach
     void beforeEach() {
@@ -74,7 +74,7 @@ class StudyControllerTest {
     @WithAccount("nick")
     void createStudy_fail() throws Exception {
         Account account = accountRepository.findByNickname("nick").get();
-        Study study = createStudy(account);
+        Study study = studyFactory.createStudy(account);
 
         mockMvc.perform(post("/new-study")
                 .with(csrf())
@@ -94,7 +94,7 @@ class StudyControllerTest {
     @WithAccount("nick")
     void view_study() throws Exception {
         Account account = accountRepository.findByNickname("nick").get();
-        Study study = createStudy(account);
+        Study study = studyFactory.createStudy(account);
 
         mockMvc.perform(get("/study/test-path"))
                 .andExpect(status().isOk())
@@ -108,7 +108,7 @@ class StudyControllerTest {
     @WithAccount("nick")
     void view_manager() throws Exception {
         Account account = accountRepository.findByNickname("nick").get();
-        Study study = createStudy(account);
+        Study study = studyFactory.createStudy(account);
 
         mockMvc.perform(get("/study/test-path"))
                 .andExpect(status().isOk())
@@ -121,7 +121,7 @@ class StudyControllerTest {
     @DisplayName("스터디 멤버 등록")
     @WithAccount("nick")
     void member_add() throws Exception {
-        Study study = createStudy(createAccount());
+        Study study = studyFactory.createStudy(accountFactory.createAccount("name"));
 
         mockMvc.perform(post("/study/" + study.getPath() + "/join")
                 .with(csrf())
@@ -138,7 +138,7 @@ class StudyControllerTest {
     @DisplayName("스터디 멤버 탈퇴")
     @WithAccount("nick")
     void member_leave() throws Exception {
-        Study study = createStudy(createAccount());
+        Study study = studyFactory.createStudy(accountFactory.createAccount("name"));
         Account account = accountRepository.findByNickname("nick").get();
         studyService.addMember(study.getPath(), account);
 
@@ -152,26 +152,5 @@ class StudyControllerTest {
         assertTrue(findStudy.getMembers().stream().filter(sm -> sm.getAccount().equals(account)).count() == 0);
     }
 
-    private Account createAccount() {
-        SignUpForm signUpForm = new SignUpForm();
-        signUpForm.setEmail("name@email.com");
-        signUpForm.setNickname("name");
-        signUpForm.setPassword("123456789");
-        Account account = signUpForm.createAccount(passwordEncoder);
-        accountService.processNewAccount(account);
 
-        return account;
-    }
-
-    private Study createStudy(Account account) {
-        Study study = Study.builder()
-                .path("test-path")
-                .title("study title")
-                .fullDescription("short description of a study")
-                .shortDescription("full description of a study")
-                .build();
-        studyService.createNewStudy(account, study);
-
-        return study;
-    }
 }

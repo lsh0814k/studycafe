@@ -1,25 +1,22 @@
 package com.studycafe.modules.study.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.studycafe.infra.MockMvcTest;
 import com.studycafe.modules.account.annotation.WithAccount;
 import com.studycafe.modules.account.domain.Account;
 import com.studycafe.modules.account.repository.AccountRepository;
-import com.studycafe.modules.account.service.AccountService;
 import com.studycafe.modules.account.web.dto.TagForm;
 import com.studycafe.modules.account.web.dto.ZoneForm;
+import com.studycafe.modules.study.StudyFactory;
 import com.studycafe.modules.study.domain.Study;
 import com.studycafe.modules.study.repository.StudyRepository;
 import com.studycafe.modules.study.service.StudyService;
-import com.studycafe.modules.tag.service.TagService;
 import com.studycafe.modules.zone.domain.Zone;
 import com.studycafe.modules.zone.repository.ZoneRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,8 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@MockMvcTest
 class StudySettingsControllerTest {
 
     @Autowired private MockMvc mockMvc;
@@ -38,10 +34,8 @@ class StudySettingsControllerTest {
     @Autowired private AccountRepository accountRepository;
     @Autowired private StudyService studyService;
     @Autowired private ObjectMapper objectMapper;
-    @Autowired private TagService tagService;
     @Autowired private ZoneRepository zoneRepository;
-    @Autowired private AccountService accountService;
-    @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private StudyFactory studyFactory;
 
     @AfterEach
     void afterEach() {
@@ -53,7 +47,8 @@ class StudySettingsControllerTest {
     @DisplayName("스터디 description 수정 form")
     @WithAccount("nick")
     void description_form() throws Exception {
-        Study study = createStudy();
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = studyFactory.createStudy(account);
 
         mockMvc.perform(get("/study/" + study.getPath() + "/settings/description"))
                 .andExpect(model().attributeExists("account"))
@@ -67,7 +62,8 @@ class StudySettingsControllerTest {
     @DisplayName("스터디 description 수정")
     @WithAccount("nick")
     void description_success() throws Exception {
-        Study study = createStudy();
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = studyFactory.createStudy(account);
 
         mockMvc.perform(post("/study/"+ study.getPath() +"/settings/description")
                 .param("fullDescription", "update full description of a study")
@@ -89,7 +85,8 @@ class StudySettingsControllerTest {
     @DisplayName("스터디 banner form")
     @WithAccount("nick")
     void banner_form() throws Exception {
-        Study study = createStudy();
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = studyFactory.createStudy(account);
         mockMvc.perform(get("/study/" + study.getPath() + "/settings/banner"))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("account"))
@@ -100,7 +97,8 @@ class StudySettingsControllerTest {
     @DisplayName("스터디 banner enable")
     @WithAccount("nick")
     void banner_enable() throws Exception {
-        Study study = createStudy();
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = studyFactory.createStudy(account);
         mockMvc.perform(post("/study/" + study.getPath() + "/settings/banner/enable")
                 .with(csrf())
         )
@@ -115,7 +113,8 @@ class StudySettingsControllerTest {
     @DisplayName("스터디 banner disable")
     @WithAccount("nick")
     void banner_disable() throws Exception {
-        Study study = createStudy();
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = studyFactory.createStudy(account);
         mockMvc.perform(post("/study/" + study.getPath() + "/settings/banner/disable")
                         .with(csrf())
                 )
@@ -130,7 +129,8 @@ class StudySettingsControllerTest {
     @DisplayName("스터디 tag form")
     @WithAccount("nick")
     void tag_form() throws Exception {
-        Study study = createStudy();
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = studyFactory.createStudy(account);
         mockMvc.perform(get("/study/" + study.getPath() + "/settings/tags"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("study/settings/tags"))
@@ -143,7 +143,8 @@ class StudySettingsControllerTest {
     @DisplayName("스터디 tag 추가")
     @WithAccount("nick")
     void tag_add() throws Exception {
-        Study study = createStudy();
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = studyFactory.createStudy(account);
         TagForm tagForm = new TagForm();
         tagForm.setTagTitle("Spring");
         mockMvc.perform(post("/study/" + study.getPath() + "/settings/tags/add")
@@ -161,10 +162,10 @@ class StudySettingsControllerTest {
     @DisplayName("스터디 tag 삭제")
     @WithAccount("nick")
     void tag_remove() throws Exception {
-        Study study = createStudy();
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = studyFactory.createStudy(account);
         TagForm tagForm = new TagForm();
         tagForm.setTagTitle("Spring");
-        Account account = accountRepository.findByNickname("nick").get();
         studyService.addTag(study.getPath(), account, tagForm.getTagTitle());
 
         mockMvc.perform(post("/study/" + study.getPath() + "/settings/tags/remove")
@@ -182,7 +183,8 @@ class StudySettingsControllerTest {
     @DisplayName("스터디 활동지역 form")
     @WithAccount("nick")
     void zone_form() throws Exception {
-        Study study = createStudy();
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = studyFactory.createStudy(account);
         mockMvc.perform(get("/study/" + study.getPath() + "/settings/zones"))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("account"))
@@ -195,7 +197,8 @@ class StudySettingsControllerTest {
     @DisplayName("스터디 활동지역 추가")
     @WithAccount("nick")
     void zone_add() throws Exception {
-        Study study = createStudy();
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = studyFactory.createStudy(account);
         Zone zone = zoneRepository.findByCityAndProvince("Ansan", "Gyeonggi").get();
         ZoneForm zoneForm = new ZoneForm();
         zoneForm.setZoneName(zone.toString());
@@ -215,11 +218,11 @@ class StudySettingsControllerTest {
     @DisplayName("스터디 활동지역 삭제")
     @WithAccount("nick")
     void zone_remove() throws Exception {
-        Study study = createStudy();
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = studyFactory.createStudy(account);
         Zone zone = zoneRepository.findByCityAndProvince("Ansan", "Gyeonggi").get();
         ZoneForm zoneForm = new ZoneForm();
         zoneForm.setZoneName(zone.toString());
-        Account account = accountRepository.findByNickname("nick").get();
 
         studyService.addZone(study.getPath(), account, zone);
 
@@ -238,7 +241,8 @@ class StudySettingsControllerTest {
     @DisplayName("스터디 폼")
     @WithAccount("nick")
     void study_form() throws Exception {
-        Study study = createStudy();
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = studyFactory.createStudy(account);
         mockMvc.perform(get("/study/" + study.getPath() + "/settings/study"))
                 .andExpect(model().attributeExists("account"))
                 .andExpect(model().attributeExists("study"))
@@ -251,7 +255,8 @@ class StudySettingsControllerTest {
     @DisplayName("스터디 오픈")
     @WithAccount("nick")
     void study_open() throws Exception {
-        Study study = createStudy();
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = studyFactory.createStudy(account);
         mockMvc.perform(post("/study/" + study.getPath() + "/settings/study/publish")
                 .with(csrf())
         )
@@ -269,8 +274,8 @@ class StudySettingsControllerTest {
     @DisplayName("스터디 종료")
     @WithAccount("nick")
     void study_close() throws Exception {
-        Study study = createStudy();
         Account account = accountRepository.findByNickname("nick").get();
+        Study study = studyFactory.createStudy(account);
         studyService.publish(study.getPath(), account);
 
         mockMvc.perform(post("/study/" + study.getPath() + "/settings/study/close")
@@ -288,7 +293,8 @@ class StudySettingsControllerTest {
     @DisplayName("스터디 경로 수정")
     @WithAccount("nick")
     void study_path() throws Exception {
-        Study study = createStudy();
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = studyFactory.createStudy(account);
         mockMvc.perform(post("/study/" + study.getPath() + "/settings/study/path")
                         .with(csrf())
                         .param("newPath", "aaa")
@@ -302,7 +308,8 @@ class StudySettingsControllerTest {
     @DisplayName("스터디 이름 수정")
     @WithAccount("nick")
     void study_title() throws Exception {
-        Study study = createStudy();
+        Account account = accountRepository.findByNickname("nick").get();
+        Study study = studyFactory.createStudy(account);
         mockMvc.perform(post("/study/" + study.getPath() + "/settings/study/title")
                         .with(csrf())
                         .param("newTitle", "new Title")
@@ -320,7 +327,7 @@ class StudySettingsControllerTest {
     @WithAccount("nick")
     void study_recruit_start() throws Exception {
         Account account = accountRepository.findByNickname("nick").get();
-        Study study = createStudy();
+        Study study = studyFactory.createStudy(account);
         studyService.publish(study.getPath(), account);
 
         mockMvc.perform(post("/study/" + study.getPath() + "/settings/recruit/start")
@@ -338,7 +345,7 @@ class StudySettingsControllerTest {
     @WithAccount("nick")
     void study_recruit_stop() throws Exception {
         Account account = accountRepository.findByNickname("nick").get();
-        Study study = createStudy();
+        Study study = studyFactory.createStudy(account);
         studyService.publish(study.getPath(), account);
 
         mockMvc.perform(post("/study/" + study.getPath() + "/settings/recruit/stop")
@@ -349,18 +356,5 @@ class StudySettingsControllerTest {
 
         Study findStudy = studyRepository.findById(study.getId()).get();
         assertFalse(findStudy.isRecruiting());
-    }
-
-    private Study createStudy() {
-        Account account = accountRepository.findByNickname("nick").get();
-        Study study = Study.builder()
-                .path("test-path")
-                .title("study title")
-                .fullDescription("short description of a study")
-                .shortDescription("full description of a study")
-                .build();
-        studyService.createNewStudy(account, study);
-
-        return study;
     }
 }

@@ -1,16 +1,13 @@
 package com.studycafe.modules.main;
 
+import com.studycafe.infra.MockMvcTest;
+import com.studycafe.modules.account.AccountFactory;
 import com.studycafe.modules.account.repository.AccountRepository;
-import com.studycafe.modules.account.service.AccountService;
-import com.studycafe.modules.account.web.dto.SignUpForm;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -21,13 +18,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@MockMvcTest
 class MainControllerTest {
-    @Autowired private AccountService accountService;
     @Autowired private MockMvc mockMvc;
-    @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private AccountRepository accountRepository;
+    @Autowired private AccountFactory accountFactory;
 
     @Test
     @DisplayName("이메일로 로그인 성공")
@@ -86,11 +81,7 @@ class MainControllerTest {
 
     @BeforeEach
     void beforeEach() {
-        SignUpForm signUpForm = new SignUpForm();
-        signUpForm.setEmail("nick@email.com");
-        signUpForm.setNickname("nick");
-        signUpForm.setPassword("123456789");
-        accountService.processNewAccount(signUpForm.createAccount(passwordEncoder));
+        accountFactory.createAccount("nick");
     }
 
     @AfterEach

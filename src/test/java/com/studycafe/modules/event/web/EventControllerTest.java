@@ -1,25 +1,22 @@
 package com.studycafe.modules.event.web;
 
+import com.studycafe.infra.MockMvcTest;
+import com.studycafe.modules.account.AccountFactory;
 import com.studycafe.modules.account.annotation.WithAccount;
 import com.studycafe.modules.account.domain.Account;
 import com.studycafe.modules.account.repository.AccountRepository;
-import com.studycafe.modules.account.service.AccountService;
-import com.studycafe.modules.account.web.dto.SignUpForm;
 import com.studycafe.modules.event.domain.Enrollment;
 import com.studycafe.modules.event.domain.Event;
 import com.studycafe.modules.event.domain.EventType;
 import com.studycafe.modules.event.repository.EventRepository;
 import com.studycafe.modules.event.service.EventService;
+import com.studycafe.modules.study.StudyFactory;
 import com.studycafe.modules.study.domain.Study;
 import com.studycafe.modules.study.repository.StudyRepository;
-import com.studycafe.modules.study.service.StudyService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URLEncoder;
@@ -32,18 +29,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@MockMvcTest
 class EventControllerTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private AccountRepository accountRepository;
-    @Autowired private StudyService studyService;
     @Autowired private EventService eventService;
     @Autowired private EventRepository eventRepository;
     @Autowired private StudyRepository studyRepository;
-    @Autowired private PasswordEncoder passwordEncoder;
-    @Autowired private AccountService accountService;
+    @Autowired private AccountFactory accountFactory;
+    @Autowired private StudyFactory studyFactory;
+    @Autowired private EventFactory eventFactory;
 
     @AfterEach
     public void afterEach() {
@@ -57,7 +53,7 @@ class EventControllerTest {
     @WithAccount("nick")
     void event_form() throws Exception {
         Account account = accountRepository.findByNickname("nick").get();
-        Study study = createStudy(account);
+        Study study = studyFactory.createStudy(account);
         mockMvc.perform(get("/study/" + study.getPath() + "/new-event"))
                 .andExpect(view().name("event/form"))
                 .andExpect(model().attributeExists("account"))
@@ -70,7 +66,7 @@ class EventControllerTest {
     @WithAccount("nick")
     void event() throws Exception {
         Account account = accountRepository.findByNickname("nick").get();
-        Study study = createStudy(account);
+        Study study = studyFactory.createStudy(account);
 
         mockMvc.perform(post("/study/" + study.getPath() + "/new-event")
                         .param("title", "title")
@@ -90,8 +86,8 @@ class EventControllerTest {
     @WithAccount("nick")
     void event_view() throws Exception {
         Account account = accountRepository.findByNickname("nick").get();
-        Study study = createStudy(account);
-        Event event = createEvent(account, study, EventType.FCFS, 2);
+        Study study = studyFactory.createStudy(account);
+        Event event = eventFactory.createEvent(account, study, EventType.FCFS, 2);
 
         mockMvc.perform(get("/study/" + study.getPath() + "/events/" + event.getId()))
                 .andExpect(view().name("event/view"))
@@ -105,8 +101,8 @@ class EventControllerTest {
     @WithAccount("nick")
     void event_query() throws Exception {
         Account account = accountRepository.findByNickname("nick").get();
-        Study study = createStudy(account);
-        Event event = createEvent(account, study, EventType.FCFS, 2);
+        Study study = studyFactory.createStudy(account);
+        Event event = eventFactory.createEvent(account, study, EventType.FCFS, 2);
 
         mockMvc.perform(get("/study/" + study.getPath() + "/events"))
                 .andExpect(view().name("study/events"))
@@ -121,8 +117,8 @@ class EventControllerTest {
     @WithAccount("nick")
     void event_edit_form() throws Exception {
         Account account = accountRepository.findByNickname("nick").get();
-        Study study = createStudy(account);
-        Event event = createEvent(account, study, EventType.FCFS, 2);
+        Study study = studyFactory.createStudy(account);
+        Event event = eventFactory.createEvent(account, study, EventType.FCFS, 2);
 
         mockMvc.perform(get("/study/" + study.getPath() + "/events/" + event.getId() + "/edit"))
                 .andExpect(view().name("event/update-form"))
@@ -136,8 +132,8 @@ class EventControllerTest {
     @WithAccount("nick")
     void event_edit() throws Exception {
         Account account = accountRepository.findByNickname("nick").get();
-        Study study = createStudy(account);
-        Event event = createEvent(account, study, EventType.FCFS, 2);
+        Study study = studyFactory.createStudy(account);
+        Event event = eventFactory.createEvent(account, study, EventType.FCFS, 2);
 
         mockMvc.perform(post("/study/" + study.getPath() + "/events/" + event.getId() + "/edit")
                 .with(csrf())
@@ -162,8 +158,8 @@ class EventControllerTest {
     @WithAccount("nick")
     void event_cancel() throws Exception {
         Account account = accountRepository.findByNickname("nick").get();
-        Study study = createStudy(account);
-        Event event = createEvent(account, study, EventType.FCFS, 2);
+        Study study = studyFactory.createStudy(account);
+        Event event = eventFactory.createEvent(account, study, EventType.FCFS, 2);
 
         mockMvc.perform(post("/study/" + study.getPath() + "/events/" + event.getId() + "/delete")
                 .with(csrf())
@@ -180,9 +176,9 @@ class EventControllerTest {
     @DisplayName("선착순 모임에 참가 신청 - 자동 수락")
     @WithAccount("nick")
     void newEnrollment_to_FCFS_event_accepted() throws Exception {
-        Account account = createAccount("name");
-        Study study = createStudy(account);
-        Event event = createEvent(account, study, EventType.FCFS, 2);
+        Account account = accountFactory.createAccount("name");
+        Study study = studyFactory.createStudy(account);
+        Event event = eventFactory.createEvent(account, study, EventType.FCFS, 2);
 
         mockMvc.perform(post("/study/" + study.getPath() + "/events/" + event.getId() + "/enroll")
                 .with(csrf())
@@ -198,12 +194,12 @@ class EventControllerTest {
     @DisplayName("선착순 모임에 참가 신청 - 대기중 (이미 인원이 꽉 차서")
     @WithAccount("nick")
     void newEnrollment_to_FCFS_event_not_accepted() throws Exception {
-        Account account = createAccount("name");
-        Study study = createStudy(account);
-        Event event = createEvent(account, study, EventType.FCFS, 2);
+        Account account = accountFactory.createAccount("name");
+        Study study = studyFactory.createStudy(account);
+        Event event = eventFactory.createEvent(account, study, EventType.FCFS, 2);
 
         eventService.newEnrollment(account, event.getId());
-        eventService.newEnrollment(createAccount("name2"), event.getId());
+        eventService.newEnrollment(accountFactory.createAccount("name2"), event.getId());
 
         mockMvc.perform(post("/study/" + study.getPath() + "/events/" + event.getId() + "/enroll")
                         .with(csrf())
@@ -224,13 +220,13 @@ class EventControllerTest {
     @DisplayName("선착순 모임에 참가 신청 - 취소")
     @WithAccount("nick")
     void cancelEnrollment_to_FCFS_event_not_accepted() throws Exception {
-        Account name = createAccount("name");
-        Study study = createStudy(name);
-        Event event = createEvent(name, study, EventType.FCFS, 2);
+        Account name = accountFactory.createAccount("name");
+        Study study = studyFactory.createStudy(name);
+        Event event = eventFactory.createEvent(name, study, EventType.FCFS, 2);
 
         Account nick = accountRepository.findByNickname("nick").get();
-        Account name2 = createAccount("name2");
-        Account name3 = createAccount("name3");
+        Account name2 = accountFactory.createAccount("name2");
+        Account name3 = accountFactory.createAccount("name3");
 
         eventService.newEnrollment(nick, event.getId());
         eventService.newEnrollment(name2, event.getId());
@@ -256,9 +252,9 @@ class EventControllerTest {
     @DisplayName("관리자 확인 모임에 참가 신청 - 대기중")
     @WithAccount("nick")
     void newEnrollment_to_CONFIRMATIVE_not_accepted() throws Exception {
-        Account name = createAccount("name");
-        Study study = createStudy(name);
-        Event event = createEvent(name, study, EventType.CONFIRMATIVE, 2);
+        Account name = accountFactory.createAccount("name");
+        Study study = studyFactory.createStudy(name);
+        Event event = eventFactory.createEvent(name, study, EventType.CONFIRMATIVE, 2);
 
         mockMvc.perform(post("/study/" + study.getPath() + "/events/" + event.getId() + "/enroll")
                         .with(csrf())
@@ -274,9 +270,9 @@ class EventControllerTest {
     @DisplayName("관리자 확인 모임에 참가 신청 수락")
     @WithAccount("nick")
     void enrollment_to_CONFIRMATIVE_accepted() throws Exception {
-        Account account = createAccount("name");
-        Study study = createStudy(account);
-        Event event = createEvent(account, study, EventType.CONFIRMATIVE, 2);
+        Account account = accountFactory.createAccount("name");
+        Study study = studyFactory.createStudy(account);
+        Event event = eventFactory.createEvent(account, study, EventType.CONFIRMATIVE, 2);
         eventService.newEnrollment(account, event.getId());
         Enrollment enrollment = eventRepository.findWithEnrollmentById(event.getId()).get().getEnrollments().get(0);
 
@@ -295,8 +291,8 @@ class EventControllerTest {
     @WithAccount("nick")
     void enrollment_to_CONFIRMATIVE_reject() throws Exception {
         Account account = accountRepository.findByNickname("nick").get();
-        Study study = createStudy(account);
-        Event event = createEvent(account, study, EventType.CONFIRMATIVE, 2);
+        Study study = studyFactory.createStudy(account);
+        Event event = eventFactory.createEvent(account, study, EventType.CONFIRMATIVE, 2);
         eventService.newEnrollment(account, event.getId());
         Enrollment enrollment = eventRepository.findWithEnrollmentById(event.getId()).get().getEnrollments().get(0);
 
@@ -315,8 +311,8 @@ class EventControllerTest {
     @WithAccount("nick")
     void enrollment_checkIn() throws Exception {
         Account account = accountRepository.findByNickname("nick").get();
-        Study study = createStudy(account);
-        Event event = createEvent(account, study, EventType.FCFS, 2);
+        Study study = studyFactory.createStudy(account);
+        Event event = eventFactory.createEvent(account, study, EventType.FCFS, 2);
         eventService.newEnrollment(account, event.getId());
         Enrollment enrollment = eventRepository.findWithEnrollmentById(event.getId()).get().getEnrollments().get(0);
 
@@ -343,8 +339,8 @@ class EventControllerTest {
     @WithAccount("nick")
     void enrollment_cancel_checkIn() throws Exception {
         Account account = accountRepository.findByNickname("nick").get();
-        Study study = createStudy(account);
-        Event event = createEvent(account, study, EventType.FCFS, 2);
+        Study study = studyFactory.createStudy(account);
+        Event event = eventFactory.createEvent(account, study, EventType.FCFS, 2);
         eventService.newEnrollment(account, event.getId());
         Enrollment enrollment = eventRepository.findWithEnrollmentById(event.getId()).get().getEnrollments().get(0);
         eventService.checkInEnrollment(event.getId(), enrollment.getId(), account);
@@ -379,46 +375,5 @@ class EventControllerTest {
                 .findFirst()
                 .get()
                 .isAccepted());
-    }
-
-    private Event createEvent(Account account, Study study, EventType eventType, int limit) {
-        Event event = Event.builder()
-                .title("모임")
-                .description("description")
-                .eventType(eventType)
-                .endEnrollmentDateTime(LocalDateTime.now().plusHours(1))
-                .startDateTime(LocalDateTime.now().plusHours(2))
-                .endDateTime(LocalDateTime.now().plusDays(2))
-                .createDateTime(LocalDateTime.now())
-                .study(study)
-                .createdBy(account)
-                .limitOfEnrollments(limit)
-                .build();
-
-        eventService.createEvent(event);
-        return event;
-    }
-
-    private Study createStudy(Account account) {
-        Study study = Study.builder()
-                .path("test-path")
-                .title("study title")
-                .fullDescription("short description of a study")
-                .shortDescription("full description of a study")
-                .build();
-        studyService.createNewStudy(account, study);
-
-        return study;
-    }
-
-    private Account createAccount(String nickname) {
-        SignUpForm signUpForm = new SignUpForm();
-        signUpForm.setEmail(nickname + "@email.com");
-        signUpForm.setNickname(nickname);
-        signUpForm.setPassword("123456789");
-        Account account = signUpForm.createAccount(passwordEncoder);
-        accountService.processNewAccount(account);
-
-        return account;
     }
 }
