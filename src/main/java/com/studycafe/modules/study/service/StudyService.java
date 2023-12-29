@@ -2,11 +2,13 @@ package com.studycafe.modules.study.service;
 
 import com.studycafe.modules.account.domain.Account;
 import com.studycafe.modules.study.domain.Study;
+import com.studycafe.modules.study.event.StudyCreatedEvent;
 import com.studycafe.modules.study.repository.StudyRepository;
 import com.studycafe.modules.tag.domain.Tag;
 import com.studycafe.modules.tag.service.TagService;
 import com.studycafe.modules.zone.domain.Zone;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,7 @@ public class StudyService {
 
     private final StudyRepository studyRepository;
     private final TagService tagService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public void createNewStudy(Account account, Study study) {
         study.addManger(account);
@@ -98,6 +101,8 @@ public class StudyService {
     public void publish(String path, Account account) {
         Study study = getStudyToUpdate(path, account);
         study.publish();
+
+        eventPublisher.publishEvent(new StudyCreatedEvent(study));
     }
 
     public void close(String path, Account account) {
