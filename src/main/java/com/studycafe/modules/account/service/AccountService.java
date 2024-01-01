@@ -1,5 +1,6 @@
 package com.studycafe.modules.account.service;
 
+import com.studycafe.infra.config.AppProperties;
 import com.studycafe.infra.mail.EmailMessage;
 import com.studycafe.infra.mail.EmailService;
 import com.studycafe.modules.account.domain.Account;
@@ -13,6 +14,8 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.util.Set;
 
@@ -23,6 +26,9 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final EmailService emailService;
     private final TagService tagService;
+    private final TemplateEngine templateEngine;
+    private final AppProperties appProperties;
+
 
     public void processNewAccount(Account account) {
         account.generateEmailCheckToken();
@@ -35,14 +41,25 @@ public class AccountService {
     }
 
     private void sendSignUpConfirmEmail(Account account) {
+        String message = templateEngine.process("mail/simple-link", createSendMailMessage(account));
         EmailMessage emailMessage = EmailMessage
                 .builder()
                 .to(account.getEmail())
                 .subject("스터디카페, 회원 가입 인증")
-                .message(String.format("/check-email-token?token=%s&email=%s", account.getEmailCheckToken(), account.getEmail()))
+                .message(message)
                 .build();
 
         emailService.sendEmail(emailMessage);
+    }
+
+    private Context createSendMailMessage(Account account) {
+        Context context = new Context();
+        context.setVariable("link", String.format("/check-email-token?token=%s&email=%s", account.getEmailCheckToken(), account.getEmail()));
+        context.setVariable("nickname", account.getNickname());
+        context.setVariable("linkName", "이메일 인증하기");
+        context.setVariable("message", "스터디 카페 서비스를 사용하려면 링크를 클릭하세요.");
+        context.setVariable("host", appProperties.getHost());
+        return context;
     }
 
     public void verifyEmail(String email, String token) {
