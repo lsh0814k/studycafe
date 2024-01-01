@@ -1,5 +1,7 @@
 package com.studycafe.modules.account.service;
 
+import com.studycafe.infra.mail.EmailMessage;
+import com.studycafe.infra.mail.EmailService;
 import com.studycafe.modules.account.domain.Account;
 import com.studycafe.modules.tag.domain.Tag;
 import com.studycafe.modules.account.exception.UnMatchedTokenException;
@@ -19,7 +21,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AccountService {
     private final AccountRepository accountRepository;
-    private final JavaMailSender javaMailSender;
+    private final EmailService emailService;
     private final TagService tagService;
 
     public void processNewAccount(Account account) {
@@ -33,11 +35,14 @@ public class AccountService {
     }
 
     private void sendSignUpConfirmEmail(Account account) {
-        SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-        simpleMailMessage.setSubject("스토디카페, 회원 가입 인증");
-        simpleMailMessage.setText(String.format("/check-email-token?token=%s&email=%s", account.getEmailCheckToken(), account.getEmail()));
-        simpleMailMessage.setTo(account.getEmail());
-        javaMailSender.send(simpleMailMessage);
+        EmailMessage emailMessage = EmailMessage
+                .builder()
+                .to(account.getEmail())
+                .subject("스터디카페, 회원 가입 인증")
+                .message(String.format("/check-email-token?token=%s&email=%s", account.getEmailCheckToken(), account.getEmail()))
+                .build();
+
+        emailService.sendEmail(emailMessage);
     }
 
     public void verifyEmail(String email, String token) {

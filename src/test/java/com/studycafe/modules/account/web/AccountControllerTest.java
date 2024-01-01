@@ -1,6 +1,8 @@
 package com.studycafe.modules.account.web;
 
 import com.studycafe.infra.MockMvcTest;
+import com.studycafe.infra.mail.EmailMessage;
+import com.studycafe.infra.mail.EmailService;
 import com.studycafe.modules.account.domain.Account;
 import com.studycafe.modules.account.repository.AccountRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +33,7 @@ class AccountControllerTest {
     private AccountRepository accountRepository;
 
     @MockBean
-    JavaMailSender javaMailSender;
+    EmailService emailService;
 
     @BeforeEach
     public void init() {
@@ -110,7 +112,7 @@ class AccountControllerTest {
                 .andExpect(view().name("redirect:/login"))
                 .andExpect(unauthenticated());
 
-        then(javaMailSender).should().send(any(SimpleMailMessage.class));
+        then(emailService).should().sendEmail(any(EmailMessage.class));
     }
 
     @Test
