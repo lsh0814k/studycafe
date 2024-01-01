@@ -1,4 +1,4 @@
-package com.studycafe.modules.study.event;
+package com.studycafe.modules.study.event.listener;
 
 import com.studycafe.modules.account.domain.Account;
 import com.studycafe.modules.account.repository.AccountPredicates;
@@ -6,6 +6,7 @@ import com.studycafe.modules.account.repository.AccountRepository;
 import com.studycafe.modules.notification.domain.Notification;
 import com.studycafe.modules.notification.repository.NotificationRepository;
 import com.studycafe.modules.study.domain.Study;
+import com.studycafe.modules.study.event.StudyCreatedEvent;
 import com.studycafe.modules.study.repository.StudyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
