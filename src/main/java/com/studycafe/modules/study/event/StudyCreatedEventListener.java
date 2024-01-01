@@ -26,7 +26,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Component
 @Transactional
 @RequiredArgsConstructor
-public class StudyEventLListener {
+public class StudyCreatedEventListener {
     private final StudyRepository studyRepository;
     private final AccountRepository accountRepository;
     private final NotificationRepository notificationRepository;

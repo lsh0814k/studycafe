@@ -57,4 +57,12 @@ public interface StudyRepository extends JpaRepository<Study, Long> {
             "where s.id = :id")
     Optional<Study> findStudyWithTagsAndZonesById(@Param("id") Long id);
 
+
+    @Query(value = "select s from Study s " +
+            "left join fetch s.managers ma " +
+            "left join fetch ma.account " +
+            "left join fetch s.members me " +
+            "left join fetch me.account " +
+            "where s.id = :id")
+    Optional<Study> findStudyWithManagersAndMembersById(@Param("id") Long id);
 }
