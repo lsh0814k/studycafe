@@ -1,7 +1,10 @@
 package com.studycafe.modules.event.service;
 
 import com.studycafe.modules.account.domain.Account;
+import com.studycafe.modules.event.domain.Enrollment;
 import com.studycafe.modules.event.domain.Event;
+import com.studycafe.modules.event.event.EnrollmentAcceptEvent;
+import com.studycafe.modules.event.event.EnrollmentRejectEvent;
 import com.studycafe.modules.event.repository.EventRepository;
 import com.studycafe.modules.study.event.StudyUpdateEvent;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +12,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -29,7 +33,6 @@ public class EventService {
     public void updateEvent(Long id, Event event) {
         Event findEvent = checkExistEvent(eventRepository.findWithStudyById(id));
         findEvent.updateEvent(event);
-        findEvent.acceptNextWaitingEnrollments();
 
         eventPublisher.publishEvent(new StudyUpdateEvent(findEvent.getStudy(), String.format("[%s] 모임 정보를 수정했습니다.", event.getTitle())));
     }
@@ -53,11 +56,15 @@ public class EventService {
     public void acceptEnrollment(Long eventId, Long enrollmentId, Account account) {
         Event event = checkExistEvent(eventRepository.findWithEnrollmentById(eventId));
         event.acceptEnrollment(enrollmentId, account);
+
+        eventPublisher.publishEvent(new EnrollmentAcceptEvent(event, account));
     }
 
     public void rejectEnrollment(Long eventId, Long enrollmentId, Account account) {
         Event event = checkExistEvent(eventRepository.findWithEnrollmentById(eventId));
         event.rejectEnrollment(enrollmentId, account);
+
+        eventPublisher.publishEvent(new EnrollmentRejectEvent(event, account));
     }
 
     public void checkInEnrollment(Long eventId, Long enrollmentId, Account account) {
@@ -73,6 +80,4 @@ public class EventService {
     private Event checkExistEvent(Optional<Event> eventRepository) {
         return eventRepository.orElseThrow(() -> new IllegalStateException("존재하지 않는 모임 입니다."));
     }
-
-
 }

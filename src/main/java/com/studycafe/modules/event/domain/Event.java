@@ -102,6 +102,7 @@ public class Event {
                 .anyMatch(e -> e.getAccount().equals(account));
     }
 
+    // TODO notification이 생성되어야 한다.
     public void updateEvent(Event event) {
         this.title = event.getTitle();
         this.description = event.getDescription();
@@ -109,6 +110,8 @@ public class Event {
         this.startDateTime = event.getStartDateTime();
         this.endDateTime = event.getEndDateTime();
         this.limitOfEnrollments = event.getLimitOfEnrollments();
+
+        acceptNextWaitingEnrollments();
     }
 
     public void acceptNextWaitingEnrollments() {
@@ -142,6 +145,7 @@ public class Event {
         this.enrollments.add(enrollment);
     }
 
+    // TODO notification이 생성되어야 한다.
     public void removeEnrollment(Account account) {
         enrollments.remove(findEnrollment(account));
 
@@ -191,7 +195,7 @@ public class Event {
     }
 
     public void acceptEnrollment(Long enrollmentId, Account account) {
-        if (!isEnrollableFor(account)) {
+        if (!isPossibleChangeAccepted(account)) {
             return;
         }
 
@@ -200,12 +204,16 @@ public class Event {
     }
 
     public void rejectEnrollment(Long enrollmentId, Account account) {
-        if (!isDisenrollableFor(account)) {
+        if (!isPossibleChangeAccepted(account)) {
             return;
         }
 
         Enrollment enrollment = findEnrollmentById(enrollmentId);
         enrollment.changeAccepted(false);
+    }
+
+    private boolean isPossibleChangeAccepted(Account account) {
+        return isNotClosed() && isAlreadyEnrolled(account) && !isAttended(account);
     }
 
     public void checkInEnrollment(Long enrollmentId, Account account) {
