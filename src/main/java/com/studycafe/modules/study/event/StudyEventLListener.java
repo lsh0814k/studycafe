@@ -55,7 +55,7 @@ public class StudyEventLListener {
                 .title(study.getTitle())
                 .link(String.format("/study/%s", URLEncoder.encode(study.getPath(), UTF_8)))
                 .checked(false)
-                .createdLocalDateTime(LocalDateTime.now())
+                .createdDateTime(LocalDateTime.now())
                 .message(study.getShortDescription())
                 .account(account)
                 .notificationType(STUDY_CREATED)

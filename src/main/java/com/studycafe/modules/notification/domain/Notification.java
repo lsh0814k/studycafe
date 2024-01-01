@@ -30,8 +30,12 @@ public class Notification {
     @ManyToOne(fetch = LAZY)
     private Account account;
 
-    private LocalDateTime createdLocalDateTime;
+    private LocalDateTime createdDateTime;
 
     @Enumerated(value = STRING)
     private NotificationType notificationType;
+
+    public void readNotification() {
+        this.checked = true;
+    }
 }
