@@ -25,4 +25,9 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             "where e.study = :study " +
             "order by e.startDateTime")
     List<Event> findByStudyOrderByStartDateTime(@Param("study") Study study);
+
+    @Query(value = "select e from Event e " +
+            "left join fetch e.study " +
+            "where e.id = :id")
+    Optional<Event> findWithStudyById(@Param("id") Long id);
 }
