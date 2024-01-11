@@ -2,11 +2,12 @@ package com.studycafe.modules.main;
 
 import com.studycafe.modules.account.annotation.CurrentUser;
 import com.studycafe.modules.account.domain.Account;
+import com.studycafe.modules.account.repository.AccountRepository;
+import com.studycafe.modules.event.repository.EventRepository;
 import com.studycafe.modules.study.domain.Study;
 import com.studycafe.modules.study.repository.StudyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
@@ -22,17 +23,26 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
 @RequiredArgsConstructor
 public class MainController {
     private final StudyRepository studyRepository;
+    private final AccountRepository accountRepository;
+    private final EventRepository eventRepository;
     @GetMapping("/")
-    public String home(@CurrentUser Account account, Model model,
-                       @PageableDefault(size = 9, sort = "publishedDateTime", direction = DESC) Pageable pageable) {
+    public String home(@CurrentUser Account account, Model model) {
         if (account != null) {
-            model.addAttribute(account);
+            addModelByAfterLoginIndex(model, account);
+            return "index-after-login";
         }
 
-        List<Study> list = studyRepository.findByMainPage(pageable);
-        model.addAttribute("studyList", list);
-
+        model.addAttribute("studyList", studyRepository.findByMainPage());
         return "index";
+    }
+
+    private void addModelByAfterLoginIndex(Model model, Account account) {
+        Account findAccount = accountRepository.findWithTagsAndZonesById(account.getId()).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        model.addAttribute("account", findAccount);
+        model.addAttribute("studyManagerOf", studyRepository.findFirst5WithManagerByAccountId(account.getId()));
+        model.addAttribute("studyMemberOf", studyRepository.findFirst5WithMemberByAccountId(account.getId()));
+        model.addAttribute("enrollmentList", eventRepository.findEnrollmentWithEventAndStudyByAccountId(account.getId()));
+        model.addAttribute("studyList", studyRepository.findByAccount(findAccount.getZones(), findAccount.getTags()));
     }
 
     @GetMapping("/login")

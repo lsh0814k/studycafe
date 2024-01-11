@@ -24,4 +24,7 @@ public interface AccountRepository extends JpaRepository<Account, Long>, Queryds
 
     @EntityGraph(attributePaths = {"zones"})
     Optional<Account> findWithZonesByEmail(String email);
+
+    @EntityGraph(attributePaths = {"zones", "tags"})
+    Optional<Account> findWithTagsAndZonesById(Long id);
 }

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Transactional(readOnly = true)
@@ -65,4 +66,16 @@ public interface StudyRepository extends JpaRepository<Study, Long>, StudyQueryR
             "left join fetch me.account " +
             "where s.id = :id")
     Optional<Study> findStudyWithManagersAndMembersById(@Param("id") Long id);
+
+    @Query(value = "select s from Study s " +
+            "join fetch s.managers m " +
+            "join fetch m.account a " +
+            "where a.id = :id")
+    List<Study> findFirst5WithManagerByAccountId(@Param("id") Long id);
+
+    @Query(value = "select s from Study s " +
+            "join fetch s.members m " +
+            "join fetch m.account a " +
+            "where a.id = :id")
+    List<Study> findFirst5WithMemberByAccountId(@Param("id") Long id);
 }

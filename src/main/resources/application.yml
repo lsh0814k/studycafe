@@ -8,6 +8,7 @@ spring:
   jpa:
     properties:
       hibernate:
+        default_batch_fetch_size: 100
         format_sql: true # 로그, 콘솔의 SQL을 좀 더 이쁘게 출력합니다.
         ddl-auto: create-drop
 

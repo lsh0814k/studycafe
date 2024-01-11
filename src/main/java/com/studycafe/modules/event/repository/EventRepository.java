@@ -1,5 +1,6 @@
 package com.studycafe.modules.event.repository;
 
+import com.studycafe.modules.event.domain.Enrollment;
 import com.studycafe.modules.event.domain.Event;
 import com.studycafe.modules.study.domain.Study;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -30,4 +31,11 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             "left join fetch e.study " +
             "where e.id = :id")
     Optional<Event> findWithStudyById(@Param("id") Long id);
+
+    @Query(value = "select e from Enrollment e " +
+            "join fetch e.event ev " +
+            "join fetch ev.study s " +
+            "where e.account.id = :id " +
+            "and e.accepted = true")
+    List<Enrollment> findEnrollmentWithEventAndStudyByAccountId(@Param("id") Long id);
 }
