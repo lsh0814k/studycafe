@@ -17,6 +17,8 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import javax.sql.DataSource;
 
+import static org.springframework.http.HttpMethod.*;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -32,12 +34,12 @@ public class SecurityConfig {
                 .requestMatchers(
                         mvcMatcherBuilder.pattern("/"),
                         mvcMatcherBuilder.pattern("/login"),
+                        mvcMatcherBuilder.pattern("/login"),
                         mvcMatcherBuilder.pattern("/sign-up"),
-                        mvcMatcherBuilder.pattern("/check-email-token"),
-                        mvcMatcherBuilder.pattern("/email-login"),
-                        mvcMatcherBuilder.pattern("/check-email-login"),
-                        mvcMatcherBuilder.pattern("/login-link"),
-                        mvcMatcherBuilder.pattern(HttpMethod.GET, "/profile/*")
+                        mvcMatcherBuilder.pattern("/sign-up"),
+                        mvcMatcherBuilder.pattern(GET, "/search/study"),
+                        mvcMatcherBuilder.pattern(GET, "/check-email-token"),
+                        mvcMatcherBuilder.pattern(GET, "/profile/*")
                 ).permitAll() // 해당 요청들은 모두 허용한다.
                 .anyRequest().authenticated() // 그 외 요청들은 모두 인증해야 한다.
         )
