@@ -36,4 +36,20 @@ public class StudyQueryRepositoryImpl extends QuerydslRepositorySupport implemen
         QueryResults<Study> fetchResults = pageableQuery.fetchResults();
         return new PageImpl<>(fetchResults.getResults(), pageable, fetchResults.getTotal());
     }
+
+    @Override
+    public List<Study> findByMainPage(Pageable pageable) {
+        QStudy study = QStudy.study;
+        JPQLQuery<Study> query = from(study).where(study.published.isTrue()
+                        .and(study.closed.isFalse()))
+                .leftJoin(study.tags).fetchJoin()
+                .leftJoin(study.zones).fetchJoin()
+                .leftJoin(study.members, QStudyMember.studyMember).fetchJoin()
+                .distinct();
+        JPQLQuery<Study> pageableQuery = getQuerydsl().applyPagination(pageable, query);
+        QueryResults<Study> fetchResults = pageableQuery.fetchResults();
+        PageImpl<Study> page = new PageImpl<>(fetchResults.getResults(), pageable, fetchResults.getTotal());
+
+        return page.getContent();
+    }
 }
